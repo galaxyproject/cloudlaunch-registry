@@ -1,2 +1,2 @@
-# cloudlaunch_app_registry
-An application registry for CloudLaunch
+# CloudLaunch Registry
+A registry of application and cloud definitions for CloudLaunch
