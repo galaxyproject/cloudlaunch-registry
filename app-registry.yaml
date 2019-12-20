@@ -1198,8 +1198,8 @@
                       cpu: 2
                       memory: 6G
                   image:
-                    repository: cloudve/galaxy-k8s
-                    tag: 19.09
+                    repository: galaxy/galaxy-k8s
+                    tag: 20.01-dev
                   configs:
                     galaxy.yml:
                       galaxy:
