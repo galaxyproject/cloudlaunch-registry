@@ -1206,7 +1206,7 @@ apps:
                         memory: 6G
                     image:
                       repository: galaxy/galaxy-k8s
-                      tag: 20.01-dev
+                      tag: 20.01
                     configs:
                       galaxy.yml:
                         galaxy:
@@ -1433,8 +1433,8 @@ apps:
             \ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path\
             \ {{ '}}' }}/authnz/custos/callback</redirect_uri>\n                   \
             \ <realm>master</realm>\n                </provider>\n            </OIDC>\n\
-            \      values:\n        image:\n          repository: cloudve/galaxy-k8s\n\
-            \          tag: 19.09\n        configs:\n          galaxy.yml:\n       \
+            \      values:\n        image:\n          repository: galaxy/galaxy-k8s\n\
+            \          tag: 20.01\n        configs:\n          galaxy.yml:\n       \
             \     galaxy:\n              enable_oidc: true\n              oidc_config_file:\
             \ /galaxy/server/config/oidc_config.xml\n              oidc_backends_config_file:\
             \ /galaxy/server/config/oidc_backends_config.xml\n          oidc_config.xml:\
@@ -1637,8 +1637,8 @@ apps:
                         </OIDC>
                   values:
                     image:
-                      repository: cloudve/galaxy-k8s
-                      tag: 19.09
+                      repository: galaxy/galaxy-k8s
+                      tag: 20.01
                     configs:
                       galaxy.yml:
                         galaxy:
@@ -2051,7 +2051,7 @@ apps:
       frontend_component_name: clui-gvl-config
       backend_component_name: cloudlaunch.backend_plugins.gvl_app.GVLAppPlugin
       default_launch_config: ''
-    - version: GVL 5.0.0 alpha (Galaxy 19.09)
+    - version: GVL 5.0.0 alpha (Galaxy 20.01)
       frontend_component_path: |-
         app/marketplace/plugins/plugins.module#PluginsModule
       frontend_component_name: clui-cm2-config
@@ -2224,8 +2224,8 @@ apps:
                                   memory: 8G
                             default_resource_set: small
                     image:
-                      repository: cloudve/galaxy-k8s
-                      tag: 19.09
+                      repository: galaxy/galaxy-k8s
+                      tag: 20.01
                     configs:
                       galaxy.yml:
                         galaxy:
