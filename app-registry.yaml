@@ -1132,7 +1132,7 @@ apps:
             securityGroup: cloudlaunch-cm2
           vmType: m1.medium
         config_cloudman2:
-          cm_boot_image: cloudve/cloudman-boot:gvl-5.0.0-alpha
+          cm_boot_image: cloudve/cloudman-boot:latest
           cm_helm_values: |-
             cluster_type: KUBE_RANCHER
             rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
@@ -1148,31 +1148,6 @@ apps:
                 - name: jupyterhub
                   url: https://jupyterhub.github.io/helm-chart/
               charts:
-                dashboard:
-                  name: stable/kubernetes-dashboard
-                  namespace: kube-system
-                  values:
-                    rbac:
-                      clusterAdminRole: true
-                    ingress:
-                      enabled: true
-                      annotations:
-                        kubernetes.io/tls-acme: "true"
-                        cert-manager.io/cluster-issuer: letsencrypt-prod
-                        nginx.ingress.kubernetes.io/secure-backends: "true"
-                      hosts:
-                        - ~
-            {% if not (rancher_server | ipaddr) %}
-                        - "{{ rancher_server }}"
-                      tls:
-                        - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                          hosts:
-                            - "{{ rancher_server }}"
-            {% endif %}
-                      paths:
-                        - /dashboard
-                        - /dashboard/*
-                    enableInsecureLogin: true
                 cvmfs:
                   name: cloudve/galaxy-cvmfs-csi
                   namespace: cvmfs
@@ -1200,33 +1175,6 @@ apps:
                             </provider>
                         </OIDC>
                   values:
-                    resources:
-                      requests:
-                        cpu: 0.5
-                        memory: 2G
-                      limits:
-                        cpu: 2
-                        memory: 6G
-                    jobs:
-                      rules:
-                        container_mapper_rules.yml: |
-                          mappings:
-                            - tool_ids:
-                                - sort1
-                                - Grouping1
-                              container:
-                                docker_container_id_override: {{ '{{' }} .Values.image.repository {{ '}}:{{' }} .Values.image.tag {{ '}}' }}
-                                resource_set: small
-                          resources:
-                            resource_sets:
-                              small:
-                                requests:
-                                  cpu: 0.5
-                                  memory: 2G
-                                limits:
-                                  cpu: 4
-                                  memory: 8G
-                            default_resource_set: small
                     image:
                       repository: galaxy/galaxy-k8s
                       tag: 20.01
@@ -1632,31 +1580,6 @@ apps:
                  - name: jupyterhub
                    url: https://jupyterhub.github.io/helm-chart/
               charts:
-                dashboard:
-                  name: stable/kubernetes-dashboard
-                  namespace: kube-system
-                  values:
-                    rbac:
-                      clusterAdminRole: true
-                    ingress:
-                      enabled: true
-                      annotations:
-                         kubernetes.io/tls-acme: "true"
-                         cert-manager.io/cluster-issuer: letsencrypt-prod
-                         nginx.ingress.kubernetes.io/secure-backends: "true"
-                      hosts:
-                         - ~
-            {% if not (rancher_server | ipaddr) %}
-                         - "{{ rancher_server }}"
-                      tls:
-                         - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                           hosts:
-                             - "{{ rancher_server }}"
-            {% endif %}
-                      paths:
-                        - /dashboard
-                        - /dashboard/*
-                    enableInsecureLogin: true
                 cvmfs:
                   name: cloudve/galaxy-cvmfs-csi
                   namespace: cvmfs
@@ -1699,7 +1622,7 @@ apps:
                         </OIDC>
                     persistence:
                       storageClass: nfs
-                      size: 95Gi
+                      size: 85Gi
                     postgresql:
                       persistence:
                         storageClass: ebs
@@ -2189,31 +2112,6 @@ apps:
                  - name: jupyterhub
                    url: https://jupyterhub.github.io/helm-chart/
               charts:
-                dashboard:
-                  name: stable/kubernetes-dashboard
-                  namespace: kube-system
-                  values:
-                    rbac:
-                      clusterAdminRole: true
-                    ingress:
-                      enabled: true
-                      annotations:
-                         kubernetes.io/tls-acme: "true"
-                         cert-manager.io/cluster-issuer: letsencrypt-prod
-                         nginx.ingress.kubernetes.io/secure-backends: "true"
-                      hosts:
-                         - ~
-            {% if not (rancher_server | ipaddr) %}
-                         - "{{ rancher_server }}"
-                      tls:
-                         - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                           hosts:
-                             - "{{ rancher_server }}"
-            {% endif %}
-                      paths:
-                        - /dashboard
-                        - /dashboard/*
-                    enableInsecureLogin: true
                 cvmfs:
                   name: cloudve/galaxy-cvmfs-csi
                   namespace: cvmfs
@@ -2241,33 +2139,6 @@ apps:
                             </provider>
                         </OIDC>
                   values:
-                    resources:
-                      requests:
-                        cpu: 0.5
-                        memory: 2G
-                      limits:
-                        cpu: 2
-                        memory: 6G
-                    jobs:
-                      rules:
-                        container_mapper_rules.yml: |
-                          mappings:
-                            - tool_ids:
-                                - sort1
-                                - Grouping1
-                              container:
-                                docker_container_id_override: {{ '{{' }} .Values.image.repository {{ '}}:{{' }} .Values.image.tag {{ '}}' }}
-                                resource_set: small
-                          resources:
-                            resource_sets:
-                              small:
-                                requests:
-                                  cpu: 0.5
-                                  memory: 2G
-                                limits:
-                                  cpu: 4
-                                  memory: 8G
-                            default_resource_set: small
                     image:
                       repository: galaxy/galaxy-k8s
                       tag: 20.01
@@ -2286,7 +2157,7 @@ apps:
                         </OIDC>
                     persistence:
                       storageClass: nfs
-                      size: 70Gi
+                      size: 80Gi
                     postgresql:
                       persistence:
                         storageClass: ebs
