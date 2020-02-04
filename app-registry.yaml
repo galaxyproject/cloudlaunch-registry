@@ -1394,99 +1394,204 @@ apps:
             securityGroup: cloudlaunch-cm2
           vmType: m1.medium
         config_cloudman2:
-          cm_boot_image: almahmoud/cloudman-boot
-          cm_helm_values: "cluster_type: KUBE_RANCHER\nrancher_url: \"https://{{ rancher_server\
-            \ }}:{{ rancher_port }}\"\nrancher_api_key: \"{{ token }}\"\nrancher_cluster_id:\
-            \ \"{{ cluster_id }}\"\nrancher_project_id: \"{{ project_id }}\"\ncm_initial_cluster_data:\
-            \ \"{{ cm_initial_cluster_data|default('') }}\"\n\nhelmsman_config:\n  repositories:\n\
-            \     - name: cloudve\n       url: https://raw.githubusercontent.com/almahmoud/helm-charts/master/\n\
-            \     - name: jupyterhub\n       url: https://jupyterhub.github.io/helm-chart/\n\
-            \  charts:\n    dashboard:\n      name: stable/kubernetes-dashboard\n  \
-            \    namespace: kube-system\n      values:\n        rbac:\n          clusterAdminRole:\
-            \ true\n        ingress:\n          enabled: true\n          annotations:\n\
-            \             kubernetes.io/tls-acme: \"true\"\n             cert-manager.io/cluster-issuer:\
-            \ letsencrypt-prod\n             nginx.ingress.kubernetes.io/secure-backends:\
-            \ \"true\"\n          hosts:\n             - ~\n{% if not (rancher_server\
-            \ | ipaddr) %}\n             - \"{{ rancher_server }}\"\n          tls:\n\
-            \             - secretName: \"{{ rancher_server | replace('.', '-') }}-key\"\
-            \n               hosts:\n                 - \"{{ rancher_server }}\"\n{%\
-            \ endif %}\n          paths:\n            - /dashboard\n            - /dashboard/*\n\
-            \        enableInsecureLogin: true\n    cvmfs:\n      name: cloudve/galaxy-cvmfs-csi\n\
-            \      namespace: cvmfs\n    galaxy:\n      name: cloudve/galaxy\n     \
-            \ namespace: default\n      oidc_client:\n        client_secret: {{ random_client_secret\
-            \ }}\n        redirect_uris:\n          - '{{ '{{' }} include \"cloudman.root_url\"\
-            \ . {{ '}}{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path\
-            \ {{ '}}' }}/authnz/custos/callback'\n      tplValues:\n        configs:\n\
-            \          oidc_backends_config.xml: |\n            <?xml version=\"1.0\"\
-            ?>\n            <OIDC>\n                <provider name=\"custos\">\n   \
-            \                 <url>https://{{ rancher_server }}/auth</url>\n       \
-            \             <client_id>galaxy-auth</client_id>\n                    <client_secret>{{\
-            \ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret\
-            \ {{ '}}' }}</client_secret>\n                    <redirect_uri>https://{{\
-            \ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path\
-            \ {{ '}}' }}/authnz/custos/callback</redirect_uri>\n                   \
-            \ <realm>master</realm>\n                </provider>\n            </OIDC>\n\
-            \      values:\n        image:\n          repository: galaxy/galaxy-k8s\n\
-            \          tag: 20.01\n        configs:\n          galaxy.yml:\n       \
-            \     galaxy:\n              enable_oidc: true\n              oidc_config_file:\
-            \ /galaxy/server/config/oidc_config.xml\n              oidc_backends_config_file:\
-            \ /galaxy/server/config/oidc_backends_config.xml\n          oidc_config.xml:\
-            \ |\n            <?xml version=\"1.0\"?>\n            <OIDC>\n         \
-            \       <Setter Property=\"VERIFY_SSL\" Value=\"False\" Type=\"bool\"/>\n\
-            \                <Setter Property=\"REQUESTS_TIMEOUT\" Value=\"3600\" Type=\"\
-            float\"/>\n                <Setter Property=\"ID_TOKEN_MAX_AGE\" Value=\"\
-            3600\" Type=\"float\"/>\n            </OIDC>\n        persistence:\n   \
-            \       storageClass: nfs\n          size: 95Gi\n        postgresql:\n \
-            \         persistence:\n            storageClass: ebs\n        ingress:\n\
-            \          enabled: true\n          annotations:\n             kubernetes.io/tls-acme:\
-            \ \"true\"\n             cert-manager.io/cluster-issuer: letsencrypt-prod\n\
-            \             nginx.ingress.kubernetes.io/secure-backends: \"true\"\n  \
-            \        hosts:\n             - ~\n{% if not (rancher_server | ipaddr) %}\n\
-            \             - \"{{ rancher_server }}\"\n          tls:\n             -\
-            \ secretName: \"{{ rancher_server | replace('.', '-') }}-key\"\n       \
-            \        hosts:\n                 - \"{{ rancher_server }}\"\n{% endif %}\n\
-            \          path: /default/galaxy\n\ncloudlaunch:\n   cloudlaunchserver:\n\
-            \      admin_password: \"{{ rancher_password }}\"\n      postgresql:\n \
-            \        persistence:\n            storageClass: \"ebs\"\n      ingress:\n\
-            \         annotations:\n            kubernetes.io/tls-acme: \"true\"\n \
-            \           cert-manager.io/cluster-issuer: letsencrypt-prod\n         \
-            \   nginx.ingress.kubernetes.io/secure-backends: \"true\"\n         hosts:\n\
-            \            - ~\n{% if not (rancher_server | ipaddr) %}\n            -\
-            \ \"{{ rancher_server }}\"\n         tls:\n            - secretName: \"\
-            {{ rancher_server | replace('.', '-') }}-key\"\n              hosts:\n \
-            \               - \"{{ rancher_server }}\"\n{% endif %}\n   ingress:\n \
-            \     annotations:\n         kubernetes.io/tls-acme: \"true\"\n        \
-            \ cert-manager.io/cluster-issuer: letsencrypt-prod\n         nginx.ingress.kubernetes.io/secure-backends:\
-            \ \"true\"\n      hosts:\n         - ~\n{% if not (rancher_server | ipaddr)\
-            \ %}\n         - \"{{ rancher_server }}\"\n      tls:\n         - secretName:\
-            \ \"{{ rancher_server | replace('.', '-') }}-key\"\n           hosts:\n\
-            \             - \"{{ rancher_server }}\"\n{% endif %}\nprometheus:\n   persistence:\n\
-            \      storageClass: \"nfs\"\n   grafana:\n      adminPassword: {{ random_client_secret\
-            \ }}\n      grafana.ini:\n         server:\n            root_url: \"https://{{\
-            \ rancher_server }}/grafana\"\n         auth.generic_oauth:\n          \
-            \  auth_url: \"https://{{ rancher_server }}/grafana/auth/realms/master/protocol/openid-connect/auth\"\
-            \n            token_url: \"https://{{ rancher_server }}/grafana/auth/realms/master/protocol/openid-connect/token\"\
-            \n            api_url: \"https://{{ rancher_server }}/grafana/auth/realms/master/protocol/openid-connect/userinfo\"\
-            \n      ingress:\n         annotations:\n            kubernetes.io/tls-acme:\
-            \ \"true\"\n            cert-manager.io/cluster-issuer: letsencrypt-prod\n\
-            \            nginx.ingress.kubernetes.io/secure-backends: \"true\"\n   \
-            \      hosts:\n            - ~\n{% if not (rancher_server | ipaddr) %}\n\
-            \            - \"{{ rancher_server }}\"\n         tls:\n            - secretName:\
-            \ \"{{ rancher_server | replace('.', '-') }}-key\"\n              hosts:\n\
-            \                - \"{{ rancher_server }}\"\n{% endif %}\nkeycloak:\n  \
-            \ keycloak:\n       persistence:  \n         deployPostgres: false\n   \
-            \      dbVendor: postgres\n         dbName: keycloak\n         dbPort: 5432\n\
-            \         dbHost: cloudman-postgresql\n         dbUser: admin\n        \
-            \ existingSecret: cloudman-postgres-superuser-password\n         existingSecretKey:\
-            \ postgres-superuser-password\n       password: \"{{ rancher_password }}\"\
-            \n       ingress:\n         enabled: true\n         path: /auth\n      \
-            \   annotations:\n            kubernetes.io/tls-acme: \"true\"\n       \
-            \     cert-manager.io/cluster-issuer: letsencrypt-prod\n            nginx.ingress.kubernetes.io/secure-backends:\
-            \ \"true\"\n         hosts:\n            - ~\n{% if not (rancher_server\
-            \ | ipaddr) %}\n            - \"{{ rancher_server }}\"\n         tls:\n\
-            \            - secretName: \"{{ rancher_server | replace('.', '-') }}-key\"\
-            \n              hosts:\n                - \"{{ rancher_server }}\"\n{% endif\
-            \ %}\nglobal:\n   domain: \"{{ rancher_server }}\""
+          cm_boot_image: almahmoud/cloudman-boot:latest
+          cm_helm_values: |-
+            projman_config:
+              projects:
+                - name: initial
+            cluster_type: KUBE_RANCHER
+            rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
+            rancher_api_key: "{{ token }}"
+            rancher_cluster_id: "{{ cluster_id }}"
+            rancher_project_id: "{{ project_id }}"
+            cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
+
+            helmsman_config:
+              repositories:
+                 - name: cloudve
+                   url: https://raw.githubusercontent.com/almahmoud/helm-charts/master/
+                 - name: jupyterhub
+                   url: https://jupyterhub.github.io/helm-chart/
+              charts:
+                cvmfs:
+                  name: cloudve/galaxy-cvmfs-csi
+                  namespace: cvmfs
+                  values:
+                    cache:
+                      size: 10000
+                galaxy:
+                  name: cloudve/galaxy
+                  namespace: initial
+                  oidc_client:
+                    client_secret: {{ random_client_secret }}
+                    redirect_uris:
+                      - '{{ '{{' }} include "cloudman.root_url" . {{ '}}{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback'
+                  tplValues:
+                    configs:
+                      oidc_backends_config.xml: |
+                        <?xml version="1.0"?>
+                        <OIDC>
+                            <provider name="custos">
+                                <url>https://{{ rancher_server }}/auth</url>
+                                <client_id>galaxy-auth</client_id>
+                                <client_secret>{{ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret {{ '}}' }}</client_secret>
+                                <redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback</redirect_uri>
+                                <realm>master</realm>
+                            </provider>
+                        </OIDC>
+                  values:
+                    resources:
+                      requests:
+                        cpu: 0.5
+                        memory: 2G
+                      limits:
+                        cpu: 2
+                        memory: 6G
+                    image:
+                      repository: galaxy/galaxy-k8s
+                      tag: 20.01
+                    configs:
+                      galaxy.yml:
+                        galaxy:
+                          enable_oidc: true
+                          oidc_config_file: /galaxy/server/config/oidc_config.xml
+                          oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
+                      oidc_config.xml: |
+                        <?xml version="1.0"?>
+                        <OIDC>
+                            <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
+                            <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
+                            <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
+                        </OIDC>
+                    persistence:
+                      storageClass: nfs
+                      size: 70Gi
+                    postgresql:
+                      persistence:
+                        storageClass: ebs
+                    ingress:
+                      enabled: true
+                      annotations:
+                         kubernetes.io/tls-acme: "true"
+                         cert-manager.io/cluster-issuer: letsencrypt-prod
+                         nginx.ingress.kubernetes.io/secure-backends: "true"
+                      hosts:
+                         - ~
+            {% if not (rancher_server | ipaddr) %}
+                         - "{{ rancher_server }}"
+                      tls:
+                         - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                           hosts:
+                             - "{{ rancher_server }}"
+            {% endif %}
+                      path: /initial/galaxy
+
+            cloudlaunch:
+               resources:
+                  requests:
+                    cpu: 100m
+                    memory: 500Mi
+                  limits:
+                    cpu: 1000m
+                    memory: 3000Mi
+               cloudlaunchserver:
+                  image:
+                    repository: almahmoud/cloudman
+                    tag: latest
+                  resources:
+                    requests:
+                      cpu: 500m
+                      memory: 1500Mi
+                    limits:
+                      cpu: 1000m
+                      memory: 5000Mi
+                  admin_password: "{{ rancher_password }}"
+                  postgresql:
+                     persistence:
+                        storageClass: "ebs"
+                  ingress:
+                     annotations:
+                        kubernetes.io/tls-acme: "true"
+                        cert-manager.io/cluster-issuer: letsencrypt-prod
+                        nginx.ingress.kubernetes.io/secure-backends: "true"
+                     hosts:
+                        - ~
+            {% if not (rancher_server | ipaddr) %}
+                        - "{{ rancher_server }}"
+                     tls:
+                        - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                          hosts:
+                            - "{{ rancher_server }}"
+            {% endif %}
+               ingress:
+                  annotations:
+                     kubernetes.io/tls-acme: "true"
+                     cert-manager.io/cluster-issuer: letsencrypt-prod
+                     nginx.ingress.kubernetes.io/secure-backends: "true"
+                  hosts:
+                     - ~
+            {% if not (rancher_server | ipaddr) %}
+                     - "{{ rancher_server }}"
+                  tls:
+                     - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                       hosts:
+                         - "{{ rancher_server }}"
+            {% endif %}
+            prometheus:
+               persistence:
+                  storageClass: "nfs"
+               grafana:
+                  adminPassword: {{ random_client_secret }}
+                  grafana.ini:
+                     server:
+                        root_url: "https://{{ rancher_server }}/grafana"
+                     auth.generic_oauth:
+                        auth_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/auth"
+                        token_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/token"
+                        api_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/userinfo"
+                  ingress:
+                     annotations:
+                        kubernetes.io/tls-acme: "true"
+                        cert-manager.io/cluster-issuer: letsencrypt-prod
+                        nginx.ingress.kubernetes.io/secure-backends: "true"
+                     hosts:
+                        - ~
+            {% if not (rancher_server | ipaddr) %}
+                        - "{{ rancher_server }}"
+                     tls:
+                        - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                          hosts:
+                            - "{{ rancher_server }}"
+            {% endif %}
+            keycloak:
+               keycloak:
+                   resources:
+                     requests:
+                        cpu: 100m
+                        memory: 750Mi
+                     limits:
+                        cpu: 1000m
+                        memory: 2000Mi
+                   password: "{{ rancher_password }}"
+                   ingress:
+                     enabled: true
+                     path: /auth
+                     annotations:
+                        kubernetes.io/tls-acme: "true"
+                        cert-manager.io/cluster-issuer: letsencrypt-prod
+                        nginx.ingress.kubernetes.io/secure-backends: "true"
+                     hosts:
+                        - ~
+            {% if not (rancher_server | ipaddr) %}
+                        - "{{ rancher_server }}"
+                     tls:
+                        - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                          hosts:
+                            - "{{ rancher_server }}"
+            {% endif %}
+            global:
+               domain: "{{ rancher_server }}"
+               deployment_name: "{{ cm_deployment_name }}"
     - version: dev
       frontend_component_path: |-
         app/marketplace/plugins/plugins.module#PluginsModule
@@ -2096,7 +2201,7 @@ apps:
             securityGroup: cloudlaunch-cm2
           vmType: m1.medium
         config_cloudman2:
-          cm_boot_image: cloudve/cloudman-boot:gvl-5.0.0-alpha
+          cm_boot_image: cloudve/cloudman-boot:gvl-5.0
           cm_helm_values: |-
             cluster_type: KUBE_RANCHER
             rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
@@ -2104,11 +2209,13 @@ apps:
             rancher_cluster_id: "{{ cluster_id }}"
             rancher_project_id: "{{ project_id }}"
             cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-
+            projman_config:
+              projects:
+                - name: initial
             helmsman_config:
               repositories:
                  - name: cloudve
-                   url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl_5.0.0_alpha/
+                   url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl-5.0/
                  - name: jupyterhub
                    url: https://jupyterhub.github.io/helm-chart/
               charts:
@@ -2120,7 +2227,7 @@ apps:
                       size: 10000
                 galaxy:
                   name: cloudve/galaxy
-                  namespace: default
+                  namespace: initial
                   oidc_client:
                     client_secret: {{ random_client_secret }}
                     redirect_uris:
@@ -2176,7 +2283,7 @@ apps:
                            hosts:
                              - "{{ rancher_server }}"
             {% endif %}
-                      path: /default/galaxy
+                      path: /initial/galaxy
 
             cloudlaunch:
                resources:
@@ -2187,6 +2294,9 @@ apps:
                     cpu: 1000m
                     memory: 3000Mi
                cloudlaunchserver:
+                  image:
+                    repository: cloudve/cloudman-server
+                    tag: gvl-5.0
                   resources:
                     requests:
                       cpu: 500m
@@ -2558,7 +2668,6 @@ apps:
             rancher_cluster_id: "{{ cluster_id }}"
             rancher_project_id: "{{ project_id }}"
             cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-
             helmsman_config:
               repositories:
                  - name: cloudve
