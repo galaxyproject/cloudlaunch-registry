@@ -2201,7 +2201,7 @@ apps:
             securityGroup: cloudlaunch-cm2
           vmType: m1.medium
         config_cloudman2:
-          cm_boot_image: cloudve/cloudman-boot:gvl_5.0
+          cm_boot_image: cloudve/cloudman-boot:gvl-5.0
           cm_helm_values: |-
             cluster_type: KUBE_RANCHER
             rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
@@ -2215,7 +2215,7 @@ apps:
             helmsman_config:
               repositories:
                  - name: cloudve
-                   url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl_5.0/
+                   url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl-5.0/
                  - name: jupyterhub
                    url: https://jupyterhub.github.io/helm-chart/
               charts:
@@ -2296,7 +2296,7 @@ apps:
                cloudlaunchserver:
                   image:
                     repository: cloudve/cloudman-server
-                    tag: gvl_5.0
+                    tag: gvl-5.0
                   resources:
                     requests:
                       cpu: 500m
