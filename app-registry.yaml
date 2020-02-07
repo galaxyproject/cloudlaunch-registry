@@ -2124,7 +2124,7 @@ apps:
       frontend_component_name: clui-gvl-config
       backend_component_name: cloudlaunch.backend_plugins.gvl_app.GVLAppPlugin
       default_launch_config: ''
-    - version: GVL 5.0.0 alpha (Galaxy 20.01)
+    - version: GVL 5.0.0 beta (Galaxy 20.01)
       frontend_component_path: |-
         app/marketplace/plugins/plugins.module#PluginsModule
       frontend_component_name: clui-cm2-config
