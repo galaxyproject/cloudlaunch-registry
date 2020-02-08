@@ -2203,6 +2203,9 @@ apps:
         config_cloudman2:
           cm_boot_image: galaxy/cloudman-boot:gvl-5.0
           cm_helm_values: |-
+            influxdb:
+              setDefaultUser:
+                password: {{ random_client_secret }}
             cluster_type: KUBE_RANCHER
             rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
             rancher_api_key: "{{ token }}"
@@ -2280,6 +2283,8 @@ apps:
                       path: /initial/galaxy
 
             cloudlaunch:
+               rabbitmq:
+                  rabbitmqErlangCookie: {{ random_client_secret }}{{ random_client_secret }}
                image:
                   repository: galaxy/cloudman-ui
                   tag: gvl-5.0
