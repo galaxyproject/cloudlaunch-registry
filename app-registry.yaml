@@ -2124,7 +2124,7 @@ apps:
       frontend_component_name: clui-gvl-config
       backend_component_name: cloudlaunch.backend_plugins.gvl_app.GVLAppPlugin
       default_launch_config: ''
-    - version: GVL 5.0.0 alpha (Galaxy 20.01)
+    - version: GVL 5.0.0 beta (Galaxy 20.01)
       frontend_component_path: |-
         app/marketplace/plugins/plugins.module#PluginsModule
       frontend_component_name: clui-cm2-config
@@ -2201,8 +2201,11 @@ apps:
             securityGroup: cloudlaunch-cm2
           vmType: m1.medium
         config_cloudman2:
-          cm_boot_image: cloudve/cloudman-boot:gvl-5.0
+          cm_boot_image: galaxy/cloudman-boot:gvl-5.0
           cm_helm_values: |-
+            influxdb:
+              setDefaultUser:
+                password: {{ random_client_secret }}
             cluster_type: KUBE_RANCHER
             rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
             rancher_api_key: "{{ token }}"
@@ -2219,12 +2222,6 @@ apps:
                  - name: jupyterhub
                    url: https://jupyterhub.github.io/helm-chart/
               charts:
-                cvmfs:
-                  name: cloudve/galaxy-cvmfs-csi
-                  namespace: cvmfs
-                  values:
-                    cache:
-                      size: 10000
                 galaxy:
                   name: cloudve/galaxy
                   namespace: initial
@@ -2286,6 +2283,11 @@ apps:
                       path: /initial/galaxy
 
             cloudlaunch:
+               rabbitmq:
+                  rabbitmqErlangCookie: {{ random_client_secret }}{{ random_client_secret }}
+               image:
+                  repository: galaxy/cloudman-ui
+                  tag: gvl-5.0
                resources:
                   requests:
                     cpu: 100m
@@ -2295,7 +2297,7 @@ apps:
                     memory: 3000Mi
                cloudlaunchserver:
                   image:
-                    repository: cloudve/cloudman-server
+                    repository: galaxy/cloudman-server
                     tag: gvl-5.0
                   resources:
                     requests:
