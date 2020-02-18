@@ -1671,26 +1671,28 @@ apps:
         config_cloudman2:
           cm_boot_image: cloudve/cloudman-boot
           cm_helm_values: |-
+            influxdb:
+              setDefaultUser:
+                password: {{ random_client_secret }}
             cluster_type: KUBE_RANCHER
             rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
             rancher_api_key: "{{ token }}"
             rancher_cluster_id: "{{ cluster_id }}"
             rancher_project_id: "{{ project_id }}"
             cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-
+            projman_config:
+              projects:
+                - name: initial
             helmsman_config:
               repositories:
                  - name: cloudve
-                   url: https://raw.githubusercontent.com/CloudVE/helm-charts/dev/
+                   url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
                  - name: jupyterhub
                    url: https://jupyterhub.github.io/helm-chart/
               charts:
-                cvmfs:
-                  name: cloudve/galaxy-cvmfs-csi
-                  namespace: cvmfs
                 galaxy:
                   name: cloudve/galaxy
-                  namespace: default
+                  namespace: initial
                   oidc_client:
                     client_secret: {{ random_client_secret }}
                     redirect_uris:
@@ -1727,7 +1729,7 @@ apps:
                         </OIDC>
                     persistence:
                       storageClass: nfs
-                      size: 85Gi
+                      size: 80Gi
                     postgresql:
                       persistence:
                         storageClass: ebs
@@ -1746,10 +1748,32 @@ apps:
                            hosts:
                              - "{{ rancher_server }}"
             {% endif %}
-                      path: /default/galaxy
+                      path: /initial/galaxy
 
             cloudlaunch:
+               rabbitmq:
+                  rabbitmqErlangCookie: {{ random_client_secret }}{{ random_client_secret }}
+               image:
+                  repository: galaxy/cloudman-ui
+                  tag: latest
+               resources:
+                  requests:
+                    cpu: 100m
+                    memory: 500Mi
+                  limits:
+                    cpu: 1000m
+                    memory: 3000Mi
                cloudlaunchserver:
+                  image:
+                    repository: galaxy/cloudman-server
+                    tag: latest
+                  resources:
+                    requests:
+                      cpu: 500m
+                      memory: 1500Mi
+                    limits:
+                      cpu: 1000m
+                      memory: 5000Mi
                   admin_password: "{{ rancher_password }}"
                   postgresql:
                      persistence:
@@ -1810,6 +1834,13 @@ apps:
             {% endif %}
             keycloak:
                keycloak:
+                   resources:
+                     requests:
+                        cpu: 100m
+                        memory: 750Mi
+                     limits:
+                        cpu: 1000m
+                        memory: 2000Mi
                    password: "{{ rancher_password }}"
                    ingress:
                      enabled: true
