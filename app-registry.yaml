@@ -1754,7 +1754,7 @@ apps:
                rabbitmq:
                   rabbitmqErlangCookie: {{ random_client_secret }}{{ random_client_secret }}
                image:
-                  repository: galaxy/cloudman-ui
+                  repository: cloudve/cloudman-ui
                   tag: latest
                resources:
                   requests:
@@ -1765,7 +1765,7 @@ apps:
                     memory: 3000Mi
                cloudlaunchserver:
                   image:
-                    repository: galaxy/cloudman-server
+                    repository: cloudve/cloudman-server
                     tag: latest
                   resources:
                     requests:
