@@ -2247,9 +2247,6 @@ apps:
             rancher_cluster_id: "{{ cluster_id }}"
             rancher_project_id: "{{ project_id }}"
             cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-            projman_config:
-              projects:
-                - name: initial
             helmsman_config:
               repositories:
                  - name: cloudve
@@ -2284,16 +2281,6 @@ apps:
                     configs:
                       galaxy.yml:
                         galaxy:
-                          enable_oidc: true
-                          oidc_config_file: /galaxy/server/config/oidc_config.xml
-                          oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
-                      oidc_config.xml: |
-                        <?xml version="1.0"?>
-                        <OIDC>
-                            <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
-                            <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
-                            <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
-                        </OIDC>
                     persistence:
                       storageClass: nfs
                       size: 80Gi
