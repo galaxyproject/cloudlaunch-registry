@@ -2278,9 +2278,6 @@ apps:
                     image:
                       repository: galaxy/galaxy-k8s
                       tag: 20.01
-                    configs:
-                      galaxy.yml:
-                        galaxy:
                     persistence:
                       storageClass: nfs
                       size: 80Gi
