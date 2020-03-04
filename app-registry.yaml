@@ -1177,7 +1177,7 @@ apps:
                   values:
                     image:
                       repository: galaxy/galaxy-k8s
-                      tag: 20.01
+                      tag: 20.01-dev
                     configs:
                       galaxy.yml:
                         galaxy:
