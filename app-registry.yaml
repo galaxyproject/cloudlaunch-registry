@@ -1669,7 +1669,7 @@ apps:
             securityGroup: cloudlaunch-cm2
           vmType: m1.medium
         config_cloudman2:
-          cm_boot_image: cloudve/cloudman-boot
+          cm_boot_image: galaxy/cloudman-boot:latest
           cm_helm_values: |-
             cluster_type: KUBE_RANCHER
             rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
@@ -1677,9 +1677,6 @@ apps:
             rancher_cluster_id: "{{ cluster_id }}"
             rancher_project_id: "{{ project_id }}"
             cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-            projman_config:
-              projects:
-                - name: initial
             helmsman_config:
               repositories:
                  - name: cloudve
@@ -1705,25 +1702,14 @@ apps:
                                 <client_secret>{{ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret {{ '}}' }}</client_secret>
                                 <redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback</redirect_uri>
                                 <realm>master</realm>
+                                <enable_idp_logout>true</enable_idp_logout>
+                                <post_logout_redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/</post_logout_redirect_uri>
                             </provider>
                         </OIDC>
                   values:
                     image:
                       repository: galaxy/galaxy-k8s
-                      tag: 20.01
-                    configs:
-                      galaxy.yml:
-                        galaxy:
-                          enable_oidc: true
-                          oidc_config_file: /galaxy/server/config/oidc_config.xml
-                          oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
-                      oidc_config.xml: |
-                        <?xml version="1.0"?>
-                        <OIDC>
-                            <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
-                            <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
-                            <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
-                        </OIDC>
+                      tag: 20.01-sso
                     persistence:
                       storageClass: nfs
                       size: 80Gi
@@ -1752,7 +1738,7 @@ apps:
                rabbitmq:
                   rabbitmqErlangCookie: {{ random_client_secret }}{{ random_client_secret }}
                image:
-                  repository: cloudve/cloudman-ui
+                  repository: galaxy/cloudman-ui
                   tag: latest
                resources:
                   requests:
@@ -1763,7 +1749,7 @@ apps:
                     memory: 3000Mi
                cloudlaunchserver:
                   image:
-                    repository: cloudve/cloudman-server
+                    repository: galaxy/cloudman-server
                     tag: latest
                   resources:
                     requests:
