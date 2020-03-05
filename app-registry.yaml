@@ -1177,7 +1177,7 @@ apps:
                   values:
                     image:
                       repository: galaxy/galaxy-k8s
-                      tag: 20.01-dev
+                      tag: 20.01
                     configs:
                       galaxy.yml:
                         galaxy:
@@ -1709,7 +1709,7 @@ apps:
                   values:
                     image:
                       repository: galaxy/galaxy-k8s
-                      tag: 20.01-sso
+                      tag: 20.01-dev
                     persistence:
                       storageClass: nfs
                       size: 80Gi
