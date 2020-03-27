@@ -1184,6 +1184,7 @@ apps:
                           enable_oidc: true
                           oidc_config_file: /galaxy/server/config/oidc_config.xml
                           oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
+                          session_duration: 30
                       oidc_config.xml: |
                         <?xml version="1.0"?>
                         <OIDC>
@@ -1456,6 +1457,7 @@ apps:
                           enable_oidc: true
                           oidc_config_file: /galaxy/server/config/oidc_config.xml
                           oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
+                          session_duration: 30
                       oidc_config.xml: |
                         <?xml version="1.0"?>
                         <OIDC>
@@ -2264,6 +2266,10 @@ apps:
                     image:
                       repository: galaxy/galaxy-k8s
                       tag: 20.01
+                    configs:
+                      galaxy.yml:
+                        galaxy:
+                          session_duration: 30
                     persistence:
                       storageClass: nfs
                       size: 80Gi
