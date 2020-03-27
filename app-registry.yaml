@@ -1437,6 +1437,7 @@ apps:
                                 <client_id>galaxy-auth</client_id>
                                 <client_secret>{{ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret {{ '}}' }}</client_secret>
                                 <redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback</redirect_uri>
+                                <enable_idp_logout>true</enable_idp_logout>
                                 <realm>master</realm>
                             </provider>
                         </OIDC>
@@ -1450,14 +1451,18 @@ apps:
                         memory: 6G
                     image:
                       repository: galaxy/galaxy-k8s
-                      tag: 20.01
+                      tag: 20.01-dev
                     configs:
                       galaxy.yml:
                         galaxy:
+                          session_duration: 30
+                          require_login: true
                           enable_oidc: true
                           oidc_config_file: /galaxy/server/config/oidc_config.xml
                           oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
                           session_duration: 30
+                      auth_conf.xml: |
+                        <auth></auth>
                       oidc_config.xml: |
                         <?xml version="1.0"?>
                         <OIDC>
