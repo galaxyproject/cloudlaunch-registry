@@ -1196,6 +1196,7 @@ apps:
                       storageClass: nfs
                       size: 70Gi
                     postgresql:
+                      postgresqlPassword: {{ random_client_secret }}
                       postgresqlPostgresPassword: {{ random_client_secret }}
                       persistence:
                         storageClass: ebs
@@ -1234,6 +1235,7 @@ apps:
                       memory: 5000Mi
                   admin_password: "{{ rancher_password }}"
                   postgresql:
+                    postgresqlPassword: {{ random_client_secret }}
                     postgresqlPostgresPassword: {{ random_client_secret }}
                     persistence:
                         storageClass: "ebs"
@@ -1476,6 +1478,7 @@ apps:
                       storageClass: nfs
                       size: 70Gi
                     postgresql:
+                      postgresqlPassword: {{ random_client_secret }}
                       postgresqlPostgresPassword: {{ random_client_secret }}
                       persistence:
                         storageClass: ebs
@@ -1517,6 +1520,7 @@ apps:
                       memory: 5000Mi
                   admin_password: "{{ rancher_password }}"
                   postgresql:
+                     postgresqlPassword: {{ random_client_secret }}
                      postgresqlPostgresPassword: {{ random_client_secret }}
                      persistence:
                         storageClass: "ebs"
@@ -1725,6 +1729,7 @@ apps:
                       storageClass: nfs
                       size: 80Gi
                     postgresql:
+                      postgresqlPassword: {{ random_client_secret }}
                       postgresqlPostgresPassword: {{ random_client_secret }}
                       persistence:
                         storageClass: ebs
@@ -1771,6 +1776,7 @@ apps:
                       memory: 5000Mi
                   admin_password: "{{ rancher_password }}"
                   postgresql:
+                     postgresqlPassword: {{ random_client_secret }}
                      postgresqlPostgresPassword: {{ random_client_secret }}
                      persistence:
                         storageClass: "ebs"
@@ -2505,6 +2511,7 @@ apps:
                       storageClass: nfs
                       size: 80Gi
                     postgresql:
+                      postgresqlPassword: {{ random_client_secret }}
                       postgresqlPostgresPassword: {{ random_client_secret }}
                       persistence:
                         storageClass: ebs
@@ -2551,6 +2558,7 @@ apps:
                       memory: 5000Mi
                   admin_password: "{{ rancher_password }}"
                   postgresql:
+                     postgresqlPassword: {{ random_client_secret }}
                      postgresqlPostgresPassword: {{ random_client_secret }}
                      persistence:
                         storageClass: "ebs"
@@ -3031,6 +3039,7 @@ apps:
                       storageClass: nfs-provisioner
                       size: 95Gi
                     postgresql:
+                      postgresqlPassword: {{ random_client_secret }}
                       postgresqlPostgresPassword: {{ random_client_secret }}
                       persistence:
                         storageClass: ebs-provisioner
@@ -3055,6 +3064,7 @@ apps:
                cloudlaunchserver:
                   admin_password: "{{ rancher_password }}"
                   postgresql:
+                     postgresqlPassword: {{ random_client_secret }}
                      postgresqlPostgresPassword: {{ random_client_secret }}
                      persistence:
                         storageClass: "ebs-provisioner"
