@@ -1418,12 +1418,6 @@ apps:
                  - name: jupyterhub
                    url: https://jupyterhub.github.io/helm-chart/
               charts:
-                cvmfs:
-                  name: cloudve/galaxy-cvmfs-csi
-                  namespace: cvmfs
-                  values:
-                    cache:
-                      size: 10000
                 galaxy:
                   name: cloudve/galaxy
                   namespace: initial
@@ -1441,18 +1435,10 @@ apps:
                                 <client_id>galaxy-auth</client_id>
                                 <client_secret>{{ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret {{ '}}' }}</client_secret>
                                 <redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback</redirect_uri>
-                                <enable_idp_logout>true</enable_idp_logout>
                                 <realm>master</realm>
                             </provider>
                         </OIDC>
                   values:
-                    resources:
-                      requests:
-                        cpu: 0.5
-                        memory: 2G
-                      limits:
-                        cpu: 2
-                        memory: 6G
                     image:
                       repository: galaxy/galaxy-k8s
                       tag: 20.01-dev
@@ -1461,22 +1447,11 @@ apps:
                         galaxy:
                           session_duration: 30
                           require_login: true
-                          enable_oidc: true
-                          oidc_config_file: /galaxy/server/config/oidc_config.xml
-                          oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
-                          session_duration: 30
-                      auth_conf.xml: |
+                      auth_conf.xml: |	
                         <auth></auth>
-                      oidc_config.xml: |
-                        <?xml version="1.0"?>
-                        <OIDC>
-                            <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
-                            <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
-                            <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
-                        </OIDC>
                     persistence:
                       storageClass: nfs
-                      size: 70Gi
+                      size: 80Gi
                     postgresql:
                       postgresqlPassword: {{ random_client_secret }}
                       postgresqlPostgresPassword: {{ random_client_secret }}
@@ -1500,6 +1475,11 @@ apps:
                       path: /initial/galaxy
 
             cloudlaunch:
+               rabbitmq:
+                  rabbitmqErlangCookie: {{ random_client_secret }}{{ random_client_secret }}
+               image:
+                  repository: almahmoud/cloudman-ui
+                  tag: latest
                resources:
                   requests:
                     cpu: 100m
@@ -1509,7 +1489,7 @@ apps:
                     memory: 3000Mi
                cloudlaunchserver:
                   image:
-                    repository: almahmoud/cloudman
+                    repository: almahmoud/cloudman-server
                     tag: latest
                   resources:
                     requests:
@@ -1555,6 +1535,12 @@ apps:
             prometheus:
                persistence:
                   storageClass: "nfs"
+               alertmanager:
+                  config:
+                     global:
+                        http_config:
+                           basic_auth:
+                              password: {{ random_client_secret }}
                grafana:
                   adminPassword: {{ random_client_secret }}
                   grafana.ini:
@@ -1604,6 +1590,9 @@ apps:
                           hosts:
                             - "{{ rancher_server }}"
             {% endif %}
+            influxdb:
+              setDefaultUser:
+                password: {{ random_client_secret }}
             global:
                domain: "{{ rancher_server }}"
                deployment_name: "{{ cm_deployment_name }}"
