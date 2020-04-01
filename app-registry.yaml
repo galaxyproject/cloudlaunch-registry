@@ -1676,16 +1676,20 @@ apps:
         config_cloudman2:
           cm_boot_image: galaxy/cloudman-boot:latest
           cm_helm_values: |-
+            projman_config:
+              projects:
+                - name: initial
             cluster_type: KUBE_RANCHER
             rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
             rancher_api_key: "{{ token }}"
             rancher_cluster_id: "{{ cluster_id }}"
             rancher_project_id: "{{ project_id }}"
             cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
+
             helmsman_config:
               repositories:
                  - name: cloudve
-                   url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
+                   url: https://raw.githubusercontent.com/cloudve/helm-charts/master/
                  - name: jupyterhub
                    url: https://jupyterhub.github.io/helm-chart/
               charts:
@@ -1706,15 +1710,21 @@ apps:
                                 <client_id>galaxy-auth</client_id>
                                 <client_secret>{{ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret {{ '}}' }}</client_secret>
                                 <redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback</redirect_uri>
-                                <realm>master</realm>
                                 <enable_idp_logout>true</enable_idp_logout>
-                                <post_logout_redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/</post_logout_redirect_uri>
+                                <realm>master</realm>
                             </provider>
                         </OIDC>
                   values:
                     image:
                       repository: galaxy/galaxy-k8s
                       tag: 20.01-dev
+                    configs:
+                      galaxy.yml:
+                        galaxy:
+                          session_duration: 30
+                          require_login: true
+                      auth_conf.xml: |  
+                        <auth></auth>
                     persistence:
                       storageClass: nfs
                       size: 80Gi
