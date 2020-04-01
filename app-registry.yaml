@@ -1435,6 +1435,7 @@ apps:
                                 <client_id>galaxy-auth</client_id>
                                 <client_secret>{{ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret {{ '}}' }}</client_secret>
                                 <redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback</redirect_uri>
+                                <enable_idp_logout>true</enable_idp_logout>
                                 <realm>master</realm>
                             </provider>
                         </OIDC>
