@@ -1674,6 +1674,8 @@ apps:
             securityGroup: cloudlaunch-cm2
           vmType: m1.medium
         config_cloudman2:
+          cm_chart_version: 0.4.0
+          cm_charts_repo: https://galaxy-helm-charts.s3.amazonaws.com/
           cm_boot_image: galaxy/cloudman-boot:latest
           cm_helm_values: |-
             projman_config:
