@@ -2139,26 +2139,82 @@ apps:
             securityGroup: cloudlaunch-cm2
           vmType: m1.medium
         config_cloudman2:
+          cm_chart_version: 0.4.0
+          cm_charts_repo: https://raw.githubusercontent.com/cloudve/helm-charts/gvl-5.0/
           cm_boot_image: galaxy/cloudman-boot:gvl-5.0
           cm_helm_values: |-
-            influxdb:
-              setDefaultUser:
-                password: {{ random_client_secret }}
+            projman_config:
+              projects:
+                - name: initial
             cluster_type: KUBE_RANCHER
             rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
             rancher_api_key: "{{ token }}"
             rancher_cluster_id: "{{ cluster_id }}"
             rancher_project_id: "{{ project_id }}"
             cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-            projman_config:
-              projects:
-                - name: initial
             helmsman_config:
               repositories:
                  - name: cloudve
-                   url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl-5.0/
+                   url: https://raw.githubusercontent.com/cloudve/helm-charts/gvl-5.0/
                  - name: jupyterhub
                    url: https://jupyterhub.github.io/helm-chart/
+              charts:
+                galaxy:
+                  name: cloudve/galaxy
+                  namespace: initial
+                  oidc_client:
+                    client_secret: {{ random_client_secret }}
+                    redirect_uris:
+                      - '{{ '{{' }} include "cloudman.root_url" . {{ '}}{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback'
+                  tplValues:
+                    configs:
+                      oidc_backends_config.xml: |
+                        <?xml version="1.0"?>
+                        <OIDC>
+                            <provider name="custos">
+                                <url>https://{{ rancher_server }}/auth</url>
+                                <client_id>galaxy-auth</client_id>
+                                <client_secret>{{ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret {{ '}}' }}</client_secret>
+                                <redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback</redirect_uri>
+                                <enable_idp_logout>true</enable_idp_logout>
+                                <realm>master</realm>
+                            </provider>
+                        </OIDC>
+                  values:
+                    image:
+                      repository: galaxy/galaxy-k8s
+                      tag: 20.01
+                    configs:
+                      galaxy.yml:
+                        galaxy:
+                          session_duration: 30
+                          require_login: true
+                      auth_conf.xml: |  
+                        <auth></auth>
+                    persistence:
+                      storageClass: nfs
+                      size: 80Gi
+                    postgresql:
+                      postgresqlPassword: {{ random_client_secret }}
+                      postgresqlPostgresPassword: {{ random_client_secret }}
+                      persistence:
+                        storageClass: ebs
+                    ingress:
+                      enabled: true
+                      annotations:
+                         kubernetes.io/tls-acme: "true"
+                         cert-manager.io/cluster-issuer: letsencrypt-prod
+                         nginx.ingress.kubernetes.io/secure-backends: "true"
+                      hosts:
+                         - ~
+            {% if not (rancher_server | ipaddr) %}
+                         - "{{ rancher_server }}"
+                      tls:
+                         - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                           hosts:
+                             - "{{ rancher_server }}"
+            {% endif %}
+                      path: /initial/galaxy
             cloudlaunch:
                rabbitmq:
                   rabbitmqErlangCookie: {{ random_client_secret }}{{ random_client_secret }}
@@ -2185,6 +2241,8 @@ apps:
                       memory: 5000Mi
                   admin_password: "{{ rancher_password }}"
                   postgresql:
+                     postgresqlPassword: {{ random_client_secret }}
+                     postgresqlPostgresPassword: {{ random_client_secret }}
                      persistence:
                         storageClass: "ebs"
                   ingress:
@@ -2218,6 +2276,12 @@ apps:
             prometheus:
                persistence:
                   storageClass: "nfs"
+               alertmanager:
+                  config:
+                     global:
+                        http_config:
+                           basic_auth:
+                              password: {{ random_client_secret }}
                grafana:
                   adminPassword: {{ random_client_secret }}
                   grafana.ini:
@@ -2267,6 +2331,9 @@ apps:
                           hosts:
                             - "{{ rancher_server }}"
             {% endif %}
+            influxdb:
+              setDefaultUser:
+                password: {{ random_client_secret }}
             global:
                domain: "{{ rancher_server }}"
                deployment_name: "{{ cm_deployment_name }}"
