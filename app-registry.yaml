@@ -1675,7 +1675,7 @@ apps:
           vmType: m1.medium
         config_cloudman2:
           cm_chart_version: 0.4.0
-          cm_charts_repo: https://galaxy-helm-charts.s3.amazonaws.com/
+          cm_charts_repo: https://raw.githubusercontent.com/cloudve/helm-charts/master/
           cm_boot_image: galaxy/cloudman-boot:latest
           cm_helm_values: |-
             projman_config:
@@ -1687,7 +1687,6 @@ apps:
             rancher_cluster_id: "{{ cluster_id }}"
             rancher_project_id: "{{ project_id }}"
             cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-
             helmsman_config:
               repositories:
                  - name: cloudve
@@ -1751,7 +1750,6 @@ apps:
                              - "{{ rancher_server }}"
             {% endif %}
                       path: /initial/galaxy
-
             cloudlaunch:
                rabbitmq:
                   rabbitmqErlangCookie: {{ random_client_secret }}{{ random_client_secret }}
