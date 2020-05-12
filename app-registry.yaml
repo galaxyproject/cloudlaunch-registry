@@ -1399,33 +1399,70 @@ apps:
             securityGroup: cloudlaunch-cm2
           vmType: m1.medium
         config_cloudman2:
-          cm_boot_image: almahmoud/cloudman-boot:latest
+          cm_boot_image: galaxy/cloudman-boot:gvl-5.0
+          cm_charts_repo: https://raw.githubusercontent.com/almahmoud/helm-charts/master/
           cm_helm_values: |-
-            projman_config:
-              projects:
-                - name: initial
             cluster_type: KUBE_RANCHER
             rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
             rancher_api_key: "{{ token }}"
             rancher_cluster_id: "{{ cluster_id }}"
             rancher_project_id: "{{ project_id }}"
             cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-
+            projman_config:
+              projects:
+                initial:
+                  charts:
+                    galaxy:
+                      install_template: galaxy
             helmsman_config:
               repositories:
                  - name: cloudve
-                   url: https://raw.githubusercontent.com/almahmoud/helm-charts/master/
+                   url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl-5.0/
                  - name: jupyterhub
                    url: https://jupyterhub.github.io/helm-chart/
-              charts:
+              install_templates:
+                jupyter:
+                  repo: jupyterhub
+                  chart: jupyterhub
+                  macros: |
+                    {{ '{%- macro random_int(len) -%}
+                      {%- for _ in range(len) -%}
+                        {{ range(10) | random }}
+                      {%- endfor -%}
+                    {%- endmacro -%}
+                    {%- macro random_alphanumeric(len) -%}
+                      {%- for _ in range(len) -%}
+                        {{ ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",0,1,2,3,4,5,6,7,8,9] | random }}
+                      {%- endfor -%}
+                    {%- endmacro -%}'}}
+                  values:
+                    ingress:
+                      enabled: true
+                      path: '/{{ '{{context.project}}' }}/jupyterhub'
+                    hub:
+                      baseUrl: '/{{ '{{context.project}}' }}/jupyterhub'
+                    proxy:
+                      secretToken: '{{ '{{random_alphanumeric(65)}}' }}'
                 galaxy:
-                  name: cloudve/galaxy
-                  namespace: initial
-                  oidc_client:
-                    client_secret: {{ random_client_secret }}
-                    redirect_uris:
-                      - '{{ '{{' }} include "cloudman.root_url" . {{ '}}{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback'
-                  tplValues:
+                  repo: cloudve
+                  chart: galaxy
+                  chart_version: 3.3.0
+                  context:
+                     oidc_client_secret: {{ random_client_secret }}
+                  macros: |
+                    {{ '{%- macro random_int(len) -%}
+                      {%- for _ in range(len) -%}
+                        {{ range(10) | random }}
+                      {%- endfor -%}
+                    {%- endmacro -%}
+                    {%- macro random_alphanumeric(len) -%}
+                      {%- for _ in range(len) -%}
+                        {{ ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",0,1,2,3,4,5,6,7,8,9] | random }}
+                      {%- endfor -%}
+                    {%- endmacro -%}'}}
+                  context:
+                    oidc_client_secret: {{ random_client_secret }}
+                  values: |
                     configs:
                       oidc_backends_config.xml: |
                         <?xml version="1.0"?>
@@ -1433,29 +1470,23 @@ apps:
                             <provider name="custos">
                                 <url>https://{{ rancher_server }}/auth</url>
                                 <client_id>galaxy-auth</client_id>
-                                <client_secret>{{ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret {{ '}}' }}</client_secret>
-                                <redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback</redirect_uri>
-                                <enable_idp_logout>true</enable_idp_logout>
+                                <client_secret>{{ '{{context.oidc_client_secret}}' }}</client_secret>
+                                <redirect_uri>https://{{ rancher_server }}/{{ '{{context.project}}' }}/galaxy/authnz/custos/callback</redirect_uri>
                                 <realm>master</realm>
                             </provider>
                         </OIDC>
-                  values:
-                    image:
-                      repository: galaxy/galaxy-k8s
-                      tag: 20.01-dev
-                    configs:
                       galaxy.yml:
                         galaxy:
                           session_duration: 30
-                          require_login: true
-                      auth_conf.xml: |	
-                        <auth></auth>
+                    image:
+                      repository: galaxy/galaxy-k8s
+                      tag: 20.01
+                    configs:
                     persistence:
                       storageClass: nfs
-                      size: 80Gi
                     postgresql:
-                      postgresqlPassword: {{ random_client_secret }}
-                      postgresqlPostgresPassword: {{ random_client_secret }}
+                      postgresqlPassword: {{ '"{{ random_alphanumeric(10) }}"' }}
+                      postgresqlPostgresPassword: {{ '"{{ random_alphanumeric(10) }}"' }}
                       persistence:
                         storageClass: ebs
                     ingress:
@@ -1473,14 +1504,14 @@ apps:
                            hosts:
                              - "{{ rancher_server }}"
             {% endif %}
-                      path: /initial/galaxy
+                      path: "/{{ '{{ context.project }}' }}/galaxy"
 
             cloudlaunch:
                rabbitmq:
-                  rabbitmqErlangCookie: {{ random_client_secret }}{{ random_client_secret }}
+                  rabbitmqErlangCookie: {{ random_client_secret }}
                image:
-                  repository: almahmoud/cloudman-ui
-                  tag: latest
+                  repository: galaxy/cloudman-ui
+                  tag: gvl-5.0
                resources:
                   requests:
                     cpu: 100m
@@ -1491,7 +1522,7 @@ apps:
                cloudlaunchserver:
                   image:
                     repository: almahmoud/cloudman-server
-                    tag: latest
+                    tag: templates
                   resources:
                     requests:
                       cpu: 500m
