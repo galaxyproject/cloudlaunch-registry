@@ -1462,8 +1462,21 @@ apps:
                     {%- endmacro -%}'}}
                   context:
                     oidc_client_secret: {{ random_client_secret }}
+                  tplValues:
+                    influxdb:
+                      url: '{{ include "cloudman.influxdb_url_cluster" . }}'
+                      database: '{{ include "cloudman.influxdb_database" . }}'
+                      username: '{{ .Values.influxdb.setDefaultUser.username }}'
+                      password: '{{ .Values.influxdb.setDefaultUser.password }}'
                   values: |
                     configs:
+                      oidc_config.xml: |
+                        <?xml version="1.0"?>
+                        <OIDC>
+                            <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
+                            <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
+                            <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
+                        </OIDC>
                       oidc_backends_config.xml: |
                         <?xml version="1.0"?>
                         <OIDC>
@@ -1472,11 +1485,20 @@ apps:
                                 <client_id>galaxy-auth</client_id>
                                 <client_secret>{{ '{{context.oidc_client_secret}}' }}</client_secret>
                                 <redirect_uri>https://{{ rancher_server }}/{{ '{{context.project}}' }}/galaxy/authnz/custos/callback</redirect_uri>
+                                <enable_idp_logout>true</enable_idp_logout>
                                 <realm>master</realm>
                             </provider>
                         </OIDC>
+                      auth_conf.xml: |
+                          <auth>
+                          </auth>
                       galaxy.yml:
                         galaxy:
+                          enable_oidc: true
+                          oidc_config_file: /galaxy/server/config/oidc_config.xml
+                          oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
+                          auth_config_file: /galaxy/server/config/auth_conf.xml
+                          require_login: true
                           session_duration: 30
                     image:
                       repository: galaxy/galaxy-k8s
