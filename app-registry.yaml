@@ -1521,7 +1521,7 @@ apps:
                            hosts:
                              - "{{ rancher_server }}"
             {% endif %}
-                      path: {{ "/{{ context.project }}/galaxy }}" }}
+                      path: {{ "/{{ context.project }}/galaxy" }}
 
             cloudlaunch:
                rabbitmq:
