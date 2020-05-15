@@ -1438,11 +1438,11 @@ apps:
                   values:
                     ingress:
                       enabled: true
-                      path: {{ '/{{ context.project}}/jupyterhub' }}
+                      path: {{ '"/{{ context.project}}/jupyterhub"' }}
                     hub:
-                      baseUrl: {{ '/{{ context.project}}/jupyterhub' }}
+                      baseUrl: {{ '"/{{ context.project}}/jupyterhub"' }}
                     proxy:
-                      secretToken: {{ '{{random_alphanumeric(65)}}' }}
+                      secretToken: {{ '"{{random_alphanumeric(65)}}"' }}
                 galaxy:
                   repo: cloudve
                   chart: galaxy
@@ -1450,8 +1450,8 @@ apps:
                   default_context:
                     influxdb_url: {{ '{{ include "cloudman.influxdb_url_cluster" . }}' }}
                     influxdb_database: {{ '{{ include "cloudman.influxdb_database" . }}' }}
-                    influxdb_username: {{ '{{ .Values.influxdb.setDefaultUser.username }}' }}
-                    influxdb_password: {{ '{{ .Values.influxdb.setDefaultUser.password }}' }}
+                    influxdb_username: {{ '"{{ .Values.influxdb.setDefaultUser.username }}"' }}
+                    influxdb_password: {{ '"{{ .Values.influxdb.setDefaultUser.password }}"' }}
                     oidc_client_secret: {{ random_client_secret }}
                   macros: |
                     {{ '{%- macro random_int(len) -%}
@@ -1479,8 +1479,8 @@ apps:
                             <provider name="custos">
                                 <url>https://{{ rancher_server }}/auth</url>
                                 <client_id>galaxy-auth</client_id>
-                                <client_secret>{{ '{{context.oidc_client_secret}}' }}</client_secret>
-                                <redirect_uri>https://{{ rancher_server }}/{{ '{{context.project}}' }}/galaxy/authnz/custos/callback</redirect_uri>
+                                <client_secret>{{ '"{{context.oidc_client_secret}}"' }}</client_secret>
+                                <redirect_uri>https://{{ rancher_server }}/{{ '"{{context.project}}"' }}/galaxy/authnz/custos/callback</redirect_uri>
                                 <enable_idp_logout>true</enable_idp_logout>
                                 <realm>master</realm>
                             </provider>
@@ -1502,8 +1502,8 @@ apps:
                     persistence:
                       storageClass: nfs
                     postgresql:
-                      postgresqlPassword: {{ '{{ random_alphanumeric(10) }}' }}
-                      postgresqlPostgresPassword: {{ '{{ random_alphanumeric(10) }}' }}
+                      postgresqlPassword: {{ '"{{ random_alphanumeric(10) }}"' }}
+                      postgresqlPostgresPassword: {{ '"{{ random_alphanumeric(10) }}"' }}
                       persistence:
                         storageClass: ebs
                     ingress:
