@@ -1448,8 +1448,8 @@ apps:
                   chart: galaxy
                   chart_version: 3.3.0
                   default_context:
-                    influxdb_url: {{ '{{ include "cloudman.influxdb_url_cluster" . }}' }}
-                    influxdb_database: {{ '{{ include "cloudman.influxdb_database" . }}' }}
+                    influxdb_url: {{ '"{{ include \"cloudman.influxdb_url_cluster\" . }}"' }}
+                    influxdb_database: {{ '"{{ include \"cloudman.influxdb_database\" . }}' }}
                     influxdb_username: {{ '"{{ .Values.influxdb.setDefaultUser.username }}"' }}
                     influxdb_password: {{ '"{{ .Values.influxdb.setDefaultUser.password }}"' }}
                     oidc_client_secret: {{ random_client_secret }}
