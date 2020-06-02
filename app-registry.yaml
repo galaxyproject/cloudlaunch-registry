@@ -1424,18 +1424,7 @@ apps:
                 jupyter:
                   repo: jupyterhub
                   chart: jupyterhub
-                  macros: |
-                    {{ '{%- macro random_int(len) -%}
-                      {%- for _ in range(len) -%}
-                        {{ range(10) | random }}
-                      {%- endfor -%}
-                    {%- endmacro -%}
-                    {%- macro random_alphanumeric(len) -%}
-                      {%- for _ in range(len) -%}
-                        {{ ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",0,1,2,3,4,5,6,7,8,9] | random }}
-                      {%- endfor -%}
-                    {%- endmacro -%}'}}
-                  values:
+                  template:
                     ingress:
                       enabled: true
                       path: {{ '"/{{ context.project}}/jupyterhub"' }}
@@ -1453,18 +1442,7 @@ apps:
                     influxdb_username: {{ '"{{ .Values.influxdb.setDefaultUser.username }}"' }}
                     influxdb_password: {{ '"{{ .Values.influxdb.setDefaultUser.password }}"' }}
                     oidc_client_secret: {{ random_client_secret }}
-                  macros: |
-                    {{ '{%- macro random_int(len) -%}
-                      {%- for _ in range(len) -%}
-                        {{ range(10) | random }}
-                      {%- endfor -%}
-                    {%- endmacro -%}
-                    {%- macro random_alphanumeric(len) -%}
-                      {%- for _ in range(len) -%}
-                        {{ ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z",0,1,2,3,4,5,6,7,8,9] | random }}
-                      {%- endfor -%}
-                    {%- endmacro -%}' }}
-                  values: |
+                  template: |
                     configs:
                       oidc_config.xml: |
                         <?xml version="1.0"?>
@@ -1508,6 +1486,7 @@ apps:
                         storageClass: ebs
                     ingress:
                       enabled: true
+                      access_path: {{ '"/{{ context.project}}/galaxy"' }}
                       annotations:
                          kubernetes.io/tls-acme: "true"
                          cert-manager.io/cluster-issuer: letsencrypt-prod
