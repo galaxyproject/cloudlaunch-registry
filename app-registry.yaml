@@ -729,9 +729,8 @@ apps:
           securityGroup: cloudlaunch-cm2
         vmType: m1.medium
       config_cloudman2:
-        cm_boot_image: galaxy/cloudman-boot:gvl-5.0
-        cm_charts_repo: |-
-          https://raw.githubusercontent.com/cloudve/helm-charts/master/
+        cm_boot_image: almahmoud/cloudman-boot:shared-data
+        cm_charts_repo: https://raw.githubusercontent.com/almahmoud/helm-charts/master/
         cm_helm_values: |-
           cluster_type: KUBE_RANCHER
           rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
@@ -754,6 +753,12 @@ apps:
               client_secret: {{random_client_secret}}
               redirect_uris:
                 - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
+            jupyterhub:
+              client_id: 'jupyterhub'
+              public_client: false
+              client_secret: {{random_client_secret}}
+              redirect_uris:
+                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
 
           projman_config:
             projects:
@@ -770,124 +775,9 @@ apps:
           helmsman_config:
             repositories:
                - name: cloudve
-                 url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl-5.0/
+                 url: https://raw.githubusercontent.com/almahmoud/helm-charts/master/
                - name: jupyterhub
                  url: https://jupyterhub.github.io/helm-chart/
-            install_templates:
-              jupyter:
-                repo: jupyterhub
-                chart: jupyterhub
-                chart_version: 0.9.0
-                context:
-                  domain: {{rancher_server}}
-                template: |
-                  ingress:
-                    enabled: true
-                    path: {{ '"/{{ context.project}}/jupyterhub"' }}
-                    hosts:
-                      - {{ "{{context.domain}}" }}
-                  hub:
-                    baseUrl: {{ '"/{{ context.project}}/jupyterhub"' }}
-                  proxy:
-                    secretToken: {{ '"{{random_alphanumeric(65)}}"' }}
-              terminalman:
-                repo: cloudve
-                chart: terminalman
-                chart_version: 1.0.0
-                context:
-                  domain: "{{rancher_server}}"
-                  oidc_client_secret: {{ '"{{ .Values.oidc_clients.terminalman.client_secret }}"' }}
-                template: |
-                  oidc:
-                    client_id: "terminalman"
-                    client_secret: {{ "{{context.oidc_client_secret}}" }}
-                    discovery_url: {{ "https://{{context.domain}}/auth/realms/master" }}
-                  ingress:
-                    hosts:
-                      - host: {{ "{{context.domain}}" }}
-                        paths:
-                          - {{ "/{{context.project}}/terminalman" }}
-              rstudio:
-                repo: cloudve
-                chart: rstudio
-                chart_version: 0.1.0
-                context:
-                  domain: "{{rancher_server}}"
-                  oidc_client_secret: {{ '"{{ .Values.oidc_clients.terminalman.client_secret }}"' }}
-                template: |
-                  ingress:
-                    hosts:
-                      - host: {{ "{{context.domain}}" }}
-                        paths:
-                          - {{ "/{{context.project}}/rstudio(/|$)(.*)" }}
-              galaxy:
-                repo: cloudve
-                chart: galaxy
-                chart_version: 3.3.0
-                context:
-                  influxdb_url: {{ '\'{{ include "cloudman.influxdb_url_cluster" . }}\'' }}
-                  influxdb_database: {{ '\'{{ include "cloudman.influxdb_database" . }}\'' }}
-                  influxdb_username: {{ '"{{ .Values.influxdb.setDefaultUser.username }}"' }}
-                  influxdb_password: {{ '"{{ .Values.influxdb.setDefaultUser.password }}"' }}
-                  oidc_client_secret: {{ '"{{ .Values.oidc_clients.galaxy.client_secret }}"' }}
-                template: |
-                  configs:
-                    oidc_config.xml: |
-                      <?xml version="1.0"?>
-                      <OIDC>
-                          <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
-                          <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
-                          <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
-                      </OIDC>
-                    oidc_backends_config.xml: |
-                      <?xml version="1.0"?>
-                      <OIDC>
-                          <provider name="custos">
-                              <url>https://{{ rancher_server }}/auth</url>
-                              <client_id>galaxy-auth</client_id>
-                              <client_secret>{{ '{{context.oidc_client_secret}}' }}</client_secret>
-                              <redirect_uri>https://{{ rancher_server }}/{{ '{{context.project}}' }}/galaxy/authnz/custos/callback</redirect_uri>
-                              <enable_idp_logout>true</enable_idp_logout>
-                              <realm>master</realm>
-                          </provider>
-                      </OIDC>
-                    auth_conf.xml: |
-                        <auth>
-                        </auth>
-                    galaxy.yml:
-                      galaxy:
-                        enable_oidc: true
-                        oidc_config_file: /galaxy/server/config/oidc_config.xml
-                        oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
-                        auth_config_file: /galaxy/server/config/auth_conf.xml
-                        require_login: true
-                        session_duration: 30
-                  image:
-                    repository: galaxy/galaxy-k8s
-                    tag: 20.01
-                  persistence:
-                    storageClass: nfs
-                  postgresql:
-                    postgresqlPassword: {{ '"{{ random_alphanumeric(10) }}"' }}
-                    postgresqlPostgresPassword: {{ '"{{ random_alphanumeric(10) }}"' }}
-                    persistence:
-                      storageClass: ebs
-                  ingress:
-                    enabled: true
-                    annotations:
-                       kubernetes.io/tls-acme: "true"
-                       cert-manager.io/cluster-issuer: letsencrypt-prod
-                       nginx.ingress.kubernetes.io/secure-backends: "true"
-                    hosts:
-                       - ~
-          {% if not (rancher_server | ipaddr) %}
-                       - "{{ rancher_server }}"
-                    tls:
-                       - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                         hosts:
-                           - "{{ rancher_server }}"
-          {% endif %}
-                    path: {{ "/{{ context.project }}/galaxy" }}
 
           cloudlaunch:
              rabbitmq:
@@ -904,7 +794,7 @@ apps:
                   memory: 3000Mi
              cloudlaunchserver:
                 image:
-                  repository: cloudve/cloudman-server
+                  repository: galaxy/cloudman-server
                   tag: latest
                 resources:
                   requests:
@@ -1089,8 +979,7 @@ apps:
         vmType: m1.medium
       config_cloudman2:
         cm_boot_image: galaxy/cloudman-boot:latest
-        cm_charts_repo: |-
-          https://raw.githubusercontent.com/cloudve/helm-charts/master/
+        cm_charts_repo: https://raw.githubusercontent.com/cloudve/helm-charts/master/
         cm_helm_values: |-
           cluster_type: KUBE_RANCHER
           rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
@@ -1113,6 +1002,12 @@ apps:
               client_secret: {{random_client_secret}}
               redirect_uris:
                 - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
+            jupyterhub:
+              client_id: 'jupyterhub'
+              public_client: false
+              client_secret: {{random_client_secret}}
+              redirect_uris:
+                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
 
           projman_config:
             projects:
@@ -1129,7 +1024,7 @@ apps:
           helmsman_config:
             repositories:
                - name: cloudve
-                 url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
+                 url: https://raw.githubusercontent.com/cloudve/helm-charts/master/
                - name: jupyterhub
                  url: https://jupyterhub.github.io/helm-chart/
 
@@ -1137,7 +1032,7 @@ apps:
              rabbitmq:
                 rabbitmqErlangCookie: {{ random_client_secret }}
              image:
-                repository: cloudve/cloudman-ui
+                repository: galaxy/cloudman-ui
                 tag: latest
              resources:
                 requests:
@@ -1148,7 +1043,7 @@ apps:
                   memory: 3000Mi
              cloudlaunchserver:
                 image:
-                  repository: cloudve/cloudman-server
+                  repository: galaxy/cloudman-server
                   tag: latest
                 resources:
                   requests:
