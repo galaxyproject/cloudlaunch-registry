@@ -2952,8 +2952,8 @@ apps:
   maintainer: GVL Team
   description: ''
   info_url: null
-  icon_url: null
-  display_order: 1035
+  icon_url: https://i.imgur.com/4cJu1lC.png
+  display_order: 1065
   default_version: GVL 5.0 w/out Galaxy
   default_launch_config:
     config_cloudlaunch:
