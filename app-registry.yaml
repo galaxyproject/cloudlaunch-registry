@@ -747,8 +747,8 @@ apps:
               client_secret: {{random_client_secret}}
               redirect_uris:
                 - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-            terminalman:
-              client_id: 'terminalman'
+            gatekeeper:
+              client_id: 'gatekeeper'
               public_client: false
               client_secret: {{random_client_secret}}
               redirect_uris:
@@ -996,8 +996,8 @@ apps:
               client_secret: {{random_client_secret}}
               redirect_uris:
                 - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-            terminalman:
-              client_id: 'terminalman'
+            gatekeeper:
+              client_id: 'gatekeeper'
               public_client: false
               client_secret: {{random_client_secret}}
               redirect_uris:
