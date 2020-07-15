@@ -2054,7 +2054,7 @@ apps:
   info_url: https://genome.edu.au/
   icon_url: https://i.imgur.com/PUZv6iY.png
   display_order: 1000
-  default_version: GVL 5.0 beta3 (Galaxy 20.01)
+  default_version: GVL 5.0 beta4 (Galaxy 20.05)
   default_launch_config:
     config_cloudlaunch:
       firewall:
@@ -2100,7 +2100,7 @@ apps:
         masterPostStartScript: |-
           file:///opt/gvl/scripts/triggers;file:///mnt/galaxy/gvl/poststart.d
   versions:
-  - version: GVL 5.0 beta3 (Galaxy 20.01)
+  - version: GVL 5.0 beta4 (Galaxy 20.05)
     frontend_component_path: |-
       app/marketplace/plugins/plugins.module#PluginsModule
     frontend_component_name: clui-cm2-config
@@ -2189,27 +2189,6 @@ apps:
           rancher_project_id: "{{ project_id }}"
           cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
 
-          oidc_clients:
-            galaxy:
-              client_id: 'galaxy-auth'
-              # The client secret is required if the client is not public
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-            terminalman:
-              client_id: 'terminalman'
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-            jupyterhub:
-              client_id: 'jupyterhub'
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-
           projman_config:
             projects:
               initial:
@@ -2228,6 +2207,11 @@ apps:
                  url: https://raw.githubusercontent.com/cloudve/helm-charts/gvl-5.0/
                - name: jupyterhub
                  url: https://jupyterhub.github.io/helm-chart/
+
+            install_templates:
+              projman:
+                context:
+                  keycloak_password: {{ rancher_password }}
 
           cloudlaunch:
              rabbitmq:
@@ -2346,8 +2330,8 @@ apps:
                           - "{{ rancher_server }}"
           {% endif %}
           influxdb:
-            setDefaultUser:
-              password: {{ random_client_secret }}
+             setDefaultUser:
+               password: {{ random_client_secret }}
           global:
              domain: "{{ rancher_server }}"
              deployment_name: "{{ cm_deployment_name }}"
