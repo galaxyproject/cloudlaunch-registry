@@ -2054,7 +2054,7 @@ apps:
   info_url: https://genome.edu.au/
   icon_url: https://i.imgur.com/PUZv6iY.png
   display_order: 1000
-  default_version: GVL 5.0 beta2 (Galaxy 20.01)
+  default_version: GVL 5.0 beta3 (Galaxy 20.01)
   default_launch_config:
     config_cloudlaunch:
       firewall:
