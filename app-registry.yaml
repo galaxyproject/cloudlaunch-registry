@@ -128,15 +128,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -395,15 +396,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -660,15 +662,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -909,15 +912,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -1317,15 +1321,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -2021,15 +2026,16 @@ apps:
       cloudlaunch.backend_plugins.pulsar_app.PulsarAppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
       config_cloudlaunch:
         firewall:
@@ -2108,15 +2114,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -2385,15 +2392,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -2974,15 +2982,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -3203,15 +3212,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -3378,15 +3388,16 @@ apps:
   default_version: 0.3.0 (Galaxy 19.09 w/ UBOS)
   default_launch_config:
     config_appliance:
-      inventoryTemplate: |-
-        ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-        [all:vars]
-        ansible_ssh_port=22
-        ansible_user='${user}'
-        ansible_ssh_private_key_file=pk
-        ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-      repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
       runner: ansible
       sshUser: ubuntu
     config_cloudlaunch:
@@ -3457,15 +3468,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -3748,15 +3760,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -3826,15 +3839,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
