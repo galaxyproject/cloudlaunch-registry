@@ -188,10 +188,16 @@ apps:
                  url: https://jupyterhub.github.io/helm-chart/
                - name: rancher
                  url: https://releases.rancher.com/server-charts/stable
+               - name: alex
+                 url: https://raw.githubusercontent.com/almahmoud/helm-charts/nextclouddev/
             template_registries:
               - name: cloudve
                 url: https://raw.githubusercontent.com/galaxyproject/cloudlaunch-registry/master/template-registry.yaml
             charts:
+              proxyinjector:
+                name: cloudve/proxyinjector
+                namespace: cloudman
+                create_namespace: false
               rancher:
                 name: rancher/rancher
                 namespace: cattle-system
