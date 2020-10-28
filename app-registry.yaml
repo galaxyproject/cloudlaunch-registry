@@ -2586,16 +2586,16 @@ apps:
   default_version: 0.3.0 (Galaxy 19.09 w/ UBOS)
   default_launch_config:
     config_appliance:
-        playbooks:
-          - url: https://github.com/CloudVE/ansible-docker-boot
-            inventory_template: |-
-              ${host}
+      playbooks:
+        - url: https://github.com/CloudVE/ansible-docker-boot
+          inventory_template: |-
+            ${host}
 
-              [all:vars]
-              ansible_ssh_port=22
-              ansible_user='${user}'
-              ansible_ssh_private_key_file=pk
-              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
+            [all:vars]
+            ansible_ssh_port=22
+            ansible_user='${user}'
+            ansible_ssh_private_key_file=pk
+            ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
       runner: ansible
       sshUser: ubuntu
     config_cloudlaunch:
