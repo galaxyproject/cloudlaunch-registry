@@ -125,21 +125,29 @@ apps:
       app/marketplace/plugins/plugins.module#PluginsModule
     frontend_component_name: clui-cm2-config
     backend_component_name: |-
-      cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
+      cloudlaunch.backend_plugins.cloudman2.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
+        runner: ansible
+        sshUser: ubuntu
         playbooks:
-          - url: https://github.com/CloudVE/ansible-docker-boot
+          - url: https://github.com/CloudVE/cloudman-boot
+            ordinal: 0
             inventory_template: |-
+              [controllers]
               ${host}
+
+              [agents]
+
+              [rke_cluster:children]
+              controllers
+              agents
 
               [all:vars]
               ansible_ssh_port=22
               ansible_user='${user}'
               ansible_ssh_private_key_file=pk
               ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        runner: ansible
-        sshUser: ubuntu
       config_cloudlaunch:
         firewall:
         - rules:
@@ -155,38 +163,6 @@ apps:
             from: '443'
             protocol: tcp
             to: '443'
-          - cidr: 0.0.0.0/0
-            from: '4430'
-            protocol: tcp
-            to: '4430'
-          - cidr: 0.0.0.0/0
-            from: '6443'
-            protocol: tcp
-            to: '6443'
-          - cidr: 0.0.0.0/0
-            from: '2379'
-            protocol: tcp
-            to: '2380'
-          - cidr: 0.0.0.0/0
-            from: '10250'
-            protocol: tcp
-            to: '10250'
-          - cidr: 0.0.0.0/0
-            from: '10251'
-            protocol: tcp
-            to: '10251'
-          - cidr: 0.0.0.0/0
-            from: '10252'
-            protocol: tcp
-            to: '10252'
-          - cidr: 0.0.0.0/0
-            from: '10256'
-            protocol: tcp
-            to: '10256'
-          - cidr: 0.0.0.0/0
-            from: '30000'
-            protocol: tcp
-            to: '32767'
           - from: '1'
             protocol: tcp
             src_group: cloudlaunch-cm2
@@ -198,36 +174,42 @@ apps:
           securityGroup: cloudlaunch-cm2
         vmType: m1.medium
       config_cloudman2:
-        cm_boot_image: galaxy/cloudman-boot:latest
         cm_charts_repo: https://raw.githubusercontent.com/cloudve/helm-charts/master/
         cm_helm_values: |-
-          cluster_type: KUBE_RANCHER
-          rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
-          rancher_api_key: "{{ token }}"
-          rancher_cluster_id: "{{ cluster_id }}"
-          rancher_project_id: "{{ project_id }}"
-          cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
+          cluster_type: KUBE_RKE
+          rke_registration_server: {{ rke_registration_server }}
+          rke_registration_token: {{ rke_registration_token }}
 
-          oidc_clients:
-            galaxy:
-              client_id: 'galaxy-auth'
-              # The client secret is required if the client is not public
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-            gatekeeper:
-              client_id: 'gatekeeper'
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-            jupyterhub:
-              client_id: 'jupyterhub'
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
+          helmsman_config:
+            repositories:
+               - name: cloudve
+                 url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
+               - name: jupyterhub
+                 url: https://jupyterhub.github.io/helm-chart/
+               - name: rancher
+                 url: https://releases.rancher.com/server-charts/stable
+            template_registries:
+              - name: cloudve
+                url: https://raw.githubusercontent.com/galaxyproject/cloudlaunch-registry/master/template-registry.yaml
+            charts:
+              rancher:
+                name: rancher/rancher
+                namespace: cattle-system
+                create_namespace: true
+                values:
+          {% if (cluster_hostname | ipaddr) %}
+                  hostname: rancher.{{ ansible_default_ipv4.address }}.xip.io
+          {% else %}
+                  hostname: rancher.{{ cluster_hostname }}
+          {% endif %}
+                  ingress:
+                    tls:
+                      source: letsEncrypt
+                  letsEncrypt:
+                    email: "admin@{{ cluster_hostname }}"
+                    environment: "production"
+                    ingress:
+                      class: nginx
 
           projman_config:
             projects:
@@ -241,12 +223,6 @@ apps:
                     install_template: rstudio
                   jupyterhub:
                     install_template: jupyter
-          helmsman_config:
-            repositories:
-               - name: cloudve
-                 url: https://raw.githubusercontent.com/cloudve/helm-charts/master/
-               - name: jupyterhub
-                 url: https://jupyterhub.github.io/helm-chart/
 
           cloudlaunch:
              rabbitmq:
