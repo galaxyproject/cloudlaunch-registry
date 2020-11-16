@@ -231,8 +231,6 @@ apps:
                     install_template: jupyter
 
           cloudlaunch:
-             rabbitmq:
-                rabbitmqErlangCookie: {{ random_client_secret }}
              image:
                 repository: galaxy/cloudman-ui
                 tag: latest
@@ -254,7 +252,11 @@ apps:
                   limits:
                     cpu: 1000m
                     memory: 5000Mi
-                admin_password: "{{ rancher_password }}"
+                admin_password: "{{ cluster_password }}"
+                rabbitmq:
+                  rabbitmqPassword: "{{ random_client_secret }}"
+                  managementPassword: "{{ random_client_secret }}"
+                  rabbitmqErlangCookie: "{{ random_client_secret }}"
                 postgresql:
                    postgresqlPassword: {{ random_client_secret }}
                    postgresqlPostgresPassword: {{ random_client_secret }}
@@ -267,12 +269,12 @@ apps:
                       nginx.ingress.kubernetes.io/secure-backends: "true"
                    hosts:
                       - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
+          {% if not (cluster_hostname | ipaddr) %}
+                      - "{{ cluster_hostname }}"
                    tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                      - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                         hosts:
-                          - "{{ rancher_server }}"
+                          - "{{ cluster_hostname }}"
           {% endif %}
              ingress:
                 annotations:
@@ -281,12 +283,12 @@ apps:
                    nginx.ingress.kubernetes.io/secure-backends: "true"
                 hosts:
                    - ~
-          {% if not (rancher_server | ipaddr) %}
-                   - "{{ rancher_server }}"
+          {% if not (cluster_hostname | ipaddr) %}
+                   - "{{ cluster_hostname }}"
                 tls:
-                   - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                   - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                      hosts:
-                       - "{{ rancher_server }}"
+                       - "{{ cluster_hostname }}"
           {% endif %}
           prometheus:
              persistence:
@@ -301,11 +303,11 @@ apps:
                 adminPassword: {{ random_client_secret }}
                 grafana.ini:
                    server:
-                      root_url: "https://{{ rancher_server }}/grafana"
+                      root_url: "https://{{ cluster_hostname }}/grafana"
                    auth.generic_oauth:
-                      auth_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/auth"
-                      token_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/token"
-                      api_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/userinfo"
+                      auth_url: "https://{{ cluster_hostname }}/auth/realms/master/protocol/openid-connect/auth"
+                      token_url: "https://{{ cluster_hostname }}/auth/realms/master/protocol/openid-connect/token"
+                      api_url: "https://{{ cluster_hostname }}/auth/realms/master/protocol/openid-connect/userinfo"
                 ingress:
                    annotations:
                       kubernetes.io/tls-acme: "true"
@@ -313,12 +315,12 @@ apps:
                       nginx.ingress.kubernetes.io/secure-backends: "true"
                    hosts:
                       - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
+          {% if not (cluster_hostname | ipaddr) %}
+                      - "{{ cluster_hostname }}"
                    tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                      - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                         hosts:
-                          - "{{ rancher_server }}"
+                          - "{{ cluster_hostname }}"
           {% endif %}
           keycloak:
              keycloak:
@@ -329,7 +331,7 @@ apps:
                    limits:
                       cpu: 1000m
                       memory: 2000Mi
-                 password: "{{ rancher_password }}"
+                 password: "{{ cluster_password }}"
                  ingress:
                    enabled: true
                    path: /auth
@@ -339,18 +341,19 @@ apps:
                       nginx.ingress.kubernetes.io/secure-backends: "true"
                    hosts:
                       - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
+          {% if not (cluster_hostname | ipaddr) %}
+                      - "{{ cluster_hostname }}"
                    tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                      - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                         hosts:
-                          - "{{ rancher_server }}"
+                          - "{{ cluster_hostname }}"
           {% endif %}
           influxdb:
             setDefaultUser:
-              password: {{ random_client_secret }}
+              user:
+                password: {{ random_client_secret }}
           global:
-             domain: "{{ rancher_server }}"
+             domain: "{{ cluster_hostname }}"
              deployment_name: "{{ cm_deployment_name }}"
 - slug: galaxy-stanalone-vm
   name: Galaxy Standalone VM

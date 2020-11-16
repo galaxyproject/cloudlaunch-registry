@@ -900,6 +900,36 @@ install_templates:
     context:
       admin_users: cloudman@someplace.org
     template: |
+      image:
+        repository: galaxy/galaxy-k8s
+      persistence:
+        storageClass: nfs
+      postgresql:
+        postgresqlPassword: "{{ random_alphanumeric(10) }}"
+        postgresqlPostgresPassword: "{{ random_alphanumeric(10) }}"
+        persistence:
+          storageClass: ebs
+      influxdb:
+        enabled: true
+        url: "{{context.global.influxdb_url}}"
+        username: "{{context.global.influxdb_username}}"
+        password: "{{context.global.influxdb_password}}"
+      ingress:
+        enabled: true
+        annotations:
+           kubernetes.io/tls-acme: "true"
+           cert-manager.io/cluster-issuer: letsencrypt-prod
+           nginx.ingress.kubernetes.io/secure-backends: "true"
+        hosts:
+          - ~
+          {%- if not (context.global.domain | ipaddr) %}
+          - "{{ context.global.domain }}"
+          {%- endif %}
+        tls:
+           - secretName: "{{context.global.domain | replace('.', '-') }}-key"
+             hosts:
+               - "{{context.global.domain}}"
+        path: {{context.project.access_path}}/galaxy
       configs:
         oidc_config.xml: |
           <?xml version="1.0"?>
@@ -934,31 +964,6 @@ install_templates:
             auth_config_file: /galaxy/server/config/auth_conf.xml
             require_login: true
             session_duration: 30
-      image:
-        repository: galaxy/galaxy-k8s
-      persistence:
-        storageClass: nfs
-      postgresql:
-        postgresqlPassword: "{{ random_alphanumeric(10) }}"
-        postgresqlPostgresPassword: "{{ random_alphanumeric(10) }}"
-        persistence:
-          storageClass: ebs
-      ingress:
-        enabled: true
-        annotations:
-           kubernetes.io/tls-acme: "true"
-           cert-manager.io/cluster-issuer: letsencrypt-prod
-           nginx.ingress.kubernetes.io/secure-backends: "true"
-        hosts:
-          - ~
-          {%- if not (context.global.domain | ipaddr) %}
-          - "{{ context.global.domain }}"
-          {%- endif %}
-        tls:
-           - secretName: "{{context.global.domain | replace('.', '-') }}-key"
-             hosts:
-               - "{{context.global.domain}}"
-        path: {{context.project.access_path}}/galaxy
 
       extraVolumes:
         - name: project-data
@@ -973,12 +978,6 @@ install_templates:
           mountPath: /gvl/projects/current
         - name: public-data
           mountPath: /gvl/public
-
-      influxdb:
-        enabled: true
-        url: "{{context.global.influxdb_url}}"
-        username: "{{context.global.influxdb_username}}"
-        password: "{{context.global.influxdb_password}}"
 
   jupyter:
     repo: jupyterhub
