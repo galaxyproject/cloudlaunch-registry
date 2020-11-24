@@ -120,25 +120,34 @@ apps:
   default_version: dev
   default_launch_config: ''
   versions:
-  - version: ea-dev
+  - version: dev
     frontend_component_path: |-
       app/marketplace/plugins/plugins.module#PluginsModule
     frontend_component_name: clui-cm2-config
     backend_component_name: |-
-      cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
+      cloudlaunch.backend_plugins.cloudman2.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
-
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
         runner: ansible
         sshUser: ubuntu
+        playbooks:
+          - url: https://github.com/CloudVE/cloudman-boot
+            ordinal: 0
+            inventory_template: |-
+              [controllers]
+              ${host}
+
+              [agents]
+
+              [rke_cluster:children]
+              controllers
+              agents
+
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
       config_cloudlaunch:
         firewall:
         - rules:
@@ -154,38 +163,6 @@ apps:
             from: '443'
             protocol: tcp
             to: '443'
-          - cidr: 0.0.0.0/0
-            from: '4430'
-            protocol: tcp
-            to: '4430'
-          - cidr: 0.0.0.0/0
-            from: '6443'
-            protocol: tcp
-            to: '6443'
-          - cidr: 0.0.0.0/0
-            from: '2379'
-            protocol: tcp
-            to: '2380'
-          - cidr: 0.0.0.0/0
-            from: '10250'
-            protocol: tcp
-            to: '10250'
-          - cidr: 0.0.0.0/0
-            from: '10251'
-            protocol: tcp
-            to: '10251'
-          - cidr: 0.0.0.0/0
-            from: '10252'
-            protocol: tcp
-            to: '10252'
-          - cidr: 0.0.0.0/0
-            from: '10256'
-            protocol: tcp
-            to: '10256'
-          - cidr: 0.0.0.0/0
-            from: '30000'
-            protocol: tcp
-            to: '32767'
           - from: '1'
             protocol: tcp
             src_group: cloudlaunch-cm2
@@ -197,281 +174,11 @@ apps:
           securityGroup: cloudlaunch-cm2
         vmType: m1.medium
       config_cloudman2:
-        cm_boot_image: cloudve/cloudman-boot:latest
+        cm_charts_repo: https://raw.githubusercontent.com/cloudve/helm-charts/master/
         cm_helm_values: |-
-          cluster_type: KUBE_RANCHER
-          rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
-          rancher_api_key: "{{ token }}"
-          rancher_cluster_id: "{{ cluster_id }}"
-          rancher_project_id: "{{ project_id }}"
-          cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-
-          helmsman_config:
-            repositories:
-              - name: cloudve
-                url: https://raw.githubusercontent.com/CloudVE/helm-charts/gvl_5.0.0_alpha/
-              - name: jupyterhub
-                url: https://jupyterhub.github.io/helm-chart/
-            charts:
-              cvmfs:
-                name: cloudve/galaxy-cvmfs-csi
-                namespace: cvmfs
-                values:
-                  cache:
-                    size: 10000
-              galaxy:
-                name: cloudve/galaxy
-                namespace: default
-                oidc_client:
-                  client_secret: {{ random_client_secret }}
-                  redirect_uris:
-                    - '{{ '{{' }} include "cloudman.root_url" . {{ '}}{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback'
-                tplValues:
-                  configs:
-                    oidc_backends_config.xml: |
-                      <?xml version="1.0"?>
-                      <OIDC>
-                          <provider name="custos">
-                              <url>https://{{ rancher_server }}/auth</url>
-                              <client_id>galaxy-auth</client_id>
-                              <client_secret>{{ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret {{ '}}' }}</client_secret>
-                              <redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback</redirect_uri>
-                              <realm>master</realm>
-                          </provider>
-                      </OIDC>
-                values:
-                  image:
-                    repository: galaxy/galaxy-k8s
-                    tag: 20.01
-                  configs:
-                    galaxy.yml:
-                      galaxy:
-                        enable_oidc: true
-                        oidc_config_file: /galaxy/server/config/oidc_config.xml
-                        oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
-                        session_duration: 30
-                    oidc_config.xml: |
-                      <?xml version="1.0"?>
-                      <OIDC>
-                          <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
-                          <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
-                          <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
-                      </OIDC>
-                  persistence:
-                    storageClass: nfs
-                    size: 70Gi
-                  postgresql:
-                    postgresqlPassword: {{ random_client_secret }}
-                    postgresqlPostgresPassword: {{ random_client_secret }}
-                    persistence:
-                      storageClass: ebs
-                  ingress:
-                    enabled: true
-                    annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                    hosts:
-                      - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
-                    tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ rancher_server }}"
-          {% endif %}
-                    path: /default/galaxy
-
-          cloudlaunch:
-            resources:
-                requests:
-                  cpu: 100m
-                  memory: 500Mi
-                limits:
-                  cpu: 1000m
-                  memory: 3000Mi
-            cloudlaunchserver:
-                resources:
-                  requests:
-                    cpu: 500m
-                    memory: 1500Mi
-                  limits:
-                    cpu: 1000m
-                    memory: 5000Mi
-                admin_password: "{{ rancher_password }}"
-                postgresql:
-                  postgresqlPassword: {{ random_client_secret }}
-                  postgresqlPostgresPassword: {{ random_client_secret }}
-                  persistence:
-                      storageClass: "ebs"
-                ingress:
-                  annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                  hosts:
-                      - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
-                  tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ rancher_server }}"
-          {% endif %}
-            ingress:
-                annotations:
-                  kubernetes.io/tls-acme: "true"
-                  cert-manager.io/cluster-issuer: letsencrypt-prod
-                  nginx.ingress.kubernetes.io/secure-backends: "true"
-                hosts:
-                  - ~
-          {% if not (rancher_server | ipaddr) %}
-                  - "{{ rancher_server }}"
-                tls:
-                  - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                    hosts:
-                      - "{{ rancher_server }}"
-          {% endif %}
-          prometheus:
-            persistence:
-                storageClass: "nfs"
-            grafana:
-                adminPassword: {{ random_client_secret }}
-                grafana.ini:
-                  server:
-                      root_url: "https://{{ rancher_server }}/grafana"
-                  auth.generic_oauth:
-                      auth_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/auth"
-                      token_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/token"
-                      api_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/userinfo"
-                ingress:
-                  annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                  hosts:
-                      - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
-                  tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ rancher_server }}"
-          {% endif %}
-          keycloak:
-            keycloak:
-                resources:
-                  requests:
-                      cpu: 100m
-                      memory: 750Mi
-                  limits:
-                      cpu: 1000m
-                      memory: 2000Mi
-                password: "{{ rancher_password }}"
-                ingress:
-                  enabled: true
-                  path: /auth
-                  annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                  hosts:
-                      - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
-                  tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ rancher_server }}"
-          {% endif %}
-          global:
-            domain: "{{ rancher_server }}"
-            deployment_name: "{{ cm_deployment_name }}"
-  - version: ng-dev
-    frontend_component_path: |-
-      app/marketplace/plugins/plugins.module#PluginsModule
-    frontend_component_name: clui-cm2-config
-    backend_component_name: |-
-      cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
-    default_launch_config:
-      config_appliance:
-        inventoryTemplate: |-
-          ${host}
-
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
-        runner: ansible
-        sshUser: ubuntu
-      config_cloudlaunch:
-        firewall:
-        - rules:
-          - cidr: 0.0.0.0/0
-            from: '22'
-            protocol: tcp
-            to: '22'
-          - cidr: 0.0.0.0/0
-            from: '80'
-            protocol: tcp
-            to: '80'
-          - cidr: 0.0.0.0/0
-            from: '443'
-            protocol: tcp
-            to: '443'
-          - cidr: 0.0.0.0/0
-            from: '4430'
-            protocol: tcp
-            to: '4430'
-          - cidr: 0.0.0.0/0
-            from: '6443'
-            protocol: tcp
-            to: '6443'
-          - cidr: 0.0.0.0/0
-            from: '2379'
-            protocol: tcp
-            to: '2380'
-          - cidr: 0.0.0.0/0
-            from: '10250'
-            protocol: tcp
-            to: '10250'
-          - cidr: 0.0.0.0/0
-            from: '10251'
-            protocol: tcp
-            to: '10251'
-          - cidr: 0.0.0.0/0
-            from: '10252'
-            protocol: tcp
-            to: '10252'
-          - cidr: 0.0.0.0/0
-            from: '10256'
-            protocol: tcp
-            to: '10256'
-          - cidr: 0.0.0.0/0
-            from: '30000'
-            protocol: tcp
-            to: '32767'
-          - from: '1'
-            protocol: tcp
-            src_group: cloudlaunch-cm2
-            to: '65535'
-          - from: '1'
-            protocol: udp
-            src_group: cloudlaunch-cm2
-            to: '65535'
-          securityGroup: cloudlaunch-cm2
-        vmType: m1.medium
-      config_cloudman2:
-        cm_boot_image: cloudve/cloudman-boot
-        cm_helm_values: |-
-          cluster_type: KUBE_RANCHER
-          rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
-          rancher_api_key: "{{ token }}"
-          rancher_cluster_id: "{{ cluster_id }}"
-          rancher_project_id: "{{ project_id }}"
-          cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
+          cluster_type: KUBE_RKE
+          rke_registration_server: {{ rke_registration_server }}
+          rke_registration_token: {{ rke_registration_token }}
 
           helmsman_config:
             repositories:
@@ -479,286 +186,36 @@ apps:
                  url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
                - name: jupyterhub
                  url: https://jupyterhub.github.io/helm-chart/
+               - name: rancher
+                 url: https://releases.rancher.com/server-charts/stable
+               - name: alex
+                 url: https://raw.githubusercontent.com/almahmoud/helm-charts/nextclouddev/
+            template_registries:
+              - name: cloudve
+                url: https://raw.githubusercontent.com/galaxyproject/cloudlaunch-registry/master/template-registry.yaml
             charts:
-              dashboard:
-                name: stable/kubernetes-dashboard
-                namespace: kube-system
+              proxyinjector:
+                name: cloudve/proxyinjector
+                namespace: cloudman
+                create_namespace: false
+              rancher:
+                name: rancher/rancher
+                namespace: cattle-system
+                create_namespace: true
                 values:
-                  rbac:
-                    clusterAdminRole: true
+          {% if (cluster_hostname | ipaddr) %}
+                  hostname: rancher.{{ ansible_default_ipv4.address }}.xip.io
+          {% else %}
+                  hostname: rancher.{{ cluster_hostname }}
+          {% endif %}
                   ingress:
-                    enabled: true
-                    annotations:
-                       kubernetes.io/tls-acme: "true"
-                       cert-manager.io/cluster-issuer: letsencrypt-prod
-                       nginx.ingress.kubernetes.io/secure-backends: "true"
-                    hosts:
-                       - ~
-          {% if not (rancher_server | ipaddr) %}
-                       - "{{ rancher_server }}"
                     tls:
-                       - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                         hosts:
-                           - "{{ rancher_server }}"
-          {% endif %}
-                    paths:
-                      - /dashboard
-                      - /dashboard/*
-                  enableInsecureLogin: true
-              cvmfs:
-                name: cloudve/galaxy-cvmfs-csi
-                namespace: cvmfs
-              galaxy:
-                name: cloudve/galaxy
-                namespace: default
-                chart_version: 3.1.1
-                version: 3.1.1
-                oidc_client:
-                  client_secret: {{ random_client_secret }}
-                  redirect_uris:
-                    - '{{ '{{' }} include "cloudman.root_url" . {{ '}}{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback'
-                tplValues:
-                  configs:
-                    oidc_backends_config.xml: |
-                      <?xml version="1.0"?>
-                      <OIDC>
-                          <provider name="custos">
-                              <url>https://{{ rancher_server }}/auth</url>
-                              <client_id>galaxy-auth</client_id>
-                              <client_secret>{{ '{{' }}.Values.helmsman_config.charts.galaxy.oidc_client.client_secret {{ '}}' }}</client_secret>
-                              <redirect_uri>https://{{ rancher_server }}{{ '{{' }} .Values.helmsman_config.charts.galaxy.values.ingress.path {{ '}}' }}/authnz/custos/callback</redirect_uri>
-                              <realm>master</realm>
-                          </provider>
-                      </OIDC>
-                values:
-                  image:
-                    repository: cloudve/galaxy-k8s
-                    tag: 19.09
-                  configs:
-                    galaxy.yml:
-                      galaxy:
-                        enable_oidc: true
-                        oidc_config_file: /galaxy/server/config/oidc_config.xml
-                        oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
-                    oidc_config.xml: |
-                      <?xml version="1.0"?>
-                      <OIDC>
-                          <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
-                          <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
-                          <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
-                      </OIDC>
-                  persistence:
-                    storageClass: nfs
-                    size: 95Gi
-                  postgresql:
-                    persistence:
-                      storageClass: ebs
-                  ingress:
-                    enabled: true
-                    annotations:
-                       kubernetes.io/tls-acme: "true"
-                       cert-manager.io/cluster-issuer: letsencrypt-prod
-                       nginx.ingress.kubernetes.io/secure-backends: "true"
-                    hosts:
-                       - ~
-          {% if not (rancher_server | ipaddr) %}
-                       - "{{ rancher_server }}"
-                    tls:
-                       - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                         hosts:
-                           - "{{ rancher_server }}"
-          {% endif %}
-                    path: /default/galaxy
-
-          cloudlaunch:
-             cloudlaunchserver:
-                admin_password: "{{ rancher_password }}"
-                postgresql:
-                   persistence:
-                      storageClass: "ebs"
-                ingress:
-                   annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                   hosts:
-                      - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
-                   tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ rancher_server }}"
-          {% endif %}
-             ingress:
-                annotations:
-                   kubernetes.io/tls-acme: "true"
-                   cert-manager.io/cluster-issuer: letsencrypt-prod
-                   nginx.ingress.kubernetes.io/secure-backends: "true"
-                hosts:
-                   - ~
-          {% if not (rancher_server | ipaddr) %}
-                   - "{{ rancher_server }}"
-                tls:
-                   - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                     hosts:
-                       - "{{ rancher_server }}"
-          {% endif %}
-          prometheus:
-             persistence:
-                storageClass: "nfs"
-             grafana:
-                adminPassword: {{ random_client_secret }}
-                grafana.ini:
-                   server:
-                      root_url: "https://{{ rancher_server }}/grafana"
-                   auth.generic_oauth:
-                      auth_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/auth"
-                      token_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/token"
-                      api_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/userinfo"
-                ingress:
-                   annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                   hosts:
-                      - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
-                   tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ rancher_server }}"
-          {% endif %}
-          keycloak:
-             keycloak:
-                 password: "{{ rancher_password }}"
-                 ingress:
-                   enabled: true
-                   path: /auth
-                   annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                   hosts:
-                      - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
-                   tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ rancher_server }}"
-          {% endif %}
-          global:
-             domain: "{{ rancher_server }}"
-             deployment_name: "{{ cm_deployment_name }}"
-  - version: am-dev
-    frontend_component_path: |-
-      app/marketplace/plugins/plugins.module#PluginsModule
-    frontend_component_name: clui-cm2-config
-    backend_component_name: |-
-      cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
-    default_launch_config:
-      config_appliance:
-        inventoryTemplate: |-
-          ${host}
-
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
-        runner: ansible
-        sshUser: ubuntu
-      config_cloudlaunch:
-        firewall:
-        - rules:
-          - cidr: 0.0.0.0/0
-            from: '22'
-            protocol: tcp
-            to: '22'
-          - cidr: 0.0.0.0/0
-            from: '80'
-            protocol: tcp
-            to: '80'
-          - cidr: 0.0.0.0/0
-            from: '443'
-            protocol: tcp
-            to: '443'
-          - cidr: 0.0.0.0/0
-            from: '4430'
-            protocol: tcp
-            to: '4430'
-          - cidr: 0.0.0.0/0
-            from: '6443'
-            protocol: tcp
-            to: '6443'
-          - cidr: 0.0.0.0/0
-            from: '2379'
-            protocol: tcp
-            to: '2380'
-          - cidr: 0.0.0.0/0
-            from: '10250'
-            protocol: tcp
-            to: '10250'
-          - cidr: 0.0.0.0/0
-            from: '10251'
-            protocol: tcp
-            to: '10251'
-          - cidr: 0.0.0.0/0
-            from: '10252'
-            protocol: tcp
-            to: '10252'
-          - cidr: 0.0.0.0/0
-            from: '10256'
-            protocol: tcp
-            to: '10256'
-          - cidr: 0.0.0.0/0
-            from: '30000'
-            protocol: tcp
-            to: '32767'
-          - from: '1'
-            protocol: tcp
-            src_group: cloudlaunch-cm2
-            to: '65535'
-          - from: '1'
-            protocol: udp
-            src_group: cloudlaunch-cm2
-            to: '65535'
-          securityGroup: cloudlaunch-cm2
-        vmType: m1.medium
-      config_cloudman2:
-        cm_boot_image: almahmoud/cloudman-boot:shared-data
-        cm_charts_repo: https://raw.githubusercontent.com/almahmoud/helm-charts/master/
-        cm_helm_values: |-
-          cluster_type: KUBE_RANCHER
-          rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
-          rancher_api_key: "{{ token }}"
-          rancher_cluster_id: "{{ cluster_id }}"
-          rancher_project_id: "{{ project_id }}"
-          cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-
-          oidc_clients:
-            galaxy:
-              client_id: 'galaxy-auth'
-              # The client secret is required if the client is not public
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-            gatekeeper:
-              client_id: 'gatekeeper'
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-            jupyterhub:
-              client_id: 'jupyterhub'
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
+                      source: letsEncrypt
+                  letsEncrypt:
+                    email: "admin@{{ cluster_hostname }}"
+                    environment: "production"
+                    ingress:
+                      class: nginx
 
           projman_config:
             projects:
@@ -772,16 +229,8 @@ apps:
                     install_template: rstudio
                   jupyterhub:
                     install_template: jupyter
-          helmsman_config:
-            repositories:
-               - name: cloudve
-                 url: https://raw.githubusercontent.com/almahmoud/helm-charts/master/
-               - name: jupyterhub
-                 url: https://jupyterhub.github.io/helm-chart/
 
           cloudlaunch:
-             rabbitmq:
-                rabbitmqErlangCookie: {{ random_client_secret }}
              image:
                 repository: galaxy/cloudman-ui
                 tag: latest
@@ -803,7 +252,11 @@ apps:
                   limits:
                     cpu: 1000m
                     memory: 5000Mi
-                admin_password: "{{ rancher_password }}"
+                admin_password: "{{ cluster_password }}"
+                rabbitmq:
+                  rabbitmqPassword: "{{ random_client_secret }}"
+                  managementPassword: "{{ random_client_secret }}"
+                  rabbitmqErlangCookie: "{{ random_client_secret }}"
                 postgresql:
                    postgresqlPassword: {{ random_client_secret }}
                    postgresqlPostgresPassword: {{ random_client_secret }}
@@ -816,12 +269,12 @@ apps:
                       nginx.ingress.kubernetes.io/secure-backends: "true"
                    hosts:
                       - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
+          {% if not (cluster_hostname | ipaddr) %}
+                      - "{{ cluster_hostname }}"
                    tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                      - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                         hosts:
-                          - "{{ rancher_server }}"
+                          - "{{ cluster_hostname }}"
           {% endif %}
              ingress:
                 annotations:
@@ -830,12 +283,12 @@ apps:
                    nginx.ingress.kubernetes.io/secure-backends: "true"
                 hosts:
                    - ~
-          {% if not (rancher_server | ipaddr) %}
-                   - "{{ rancher_server }}"
+          {% if not (cluster_hostname | ipaddr) %}
+                   - "{{ cluster_hostname }}"
                 tls:
-                   - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                   - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                      hosts:
-                       - "{{ rancher_server }}"
+                       - "{{ cluster_hostname }}"
           {% endif %}
           prometheus:
              persistence:
@@ -850,11 +303,11 @@ apps:
                 adminPassword: {{ random_client_secret }}
                 grafana.ini:
                    server:
-                      root_url: "https://{{ rancher_server }}/grafana"
+                      root_url: "https://{{ cluster_hostname }}/grafana"
                    auth.generic_oauth:
-                      auth_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/auth"
-                      token_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/token"
-                      api_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/userinfo"
+                      auth_url: "https://{{ cluster_hostname }}/auth/realms/master/protocol/openid-connect/auth"
+                      token_url: "https://{{ cluster_hostname }}/auth/realms/master/protocol/openid-connect/token"
+                      api_url: "https://{{ cluster_hostname }}/auth/realms/master/protocol/openid-connect/userinfo"
                 ingress:
                    annotations:
                       kubernetes.io/tls-acme: "true"
@@ -862,12 +315,12 @@ apps:
                       nginx.ingress.kubernetes.io/secure-backends: "true"
                    hosts:
                       - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
+          {% if not (cluster_hostname | ipaddr) %}
+                      - "{{ cluster_hostname }}"
                    tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                      - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                         hosts:
-                          - "{{ rancher_server }}"
+                          - "{{ cluster_hostname }}"
           {% endif %}
           keycloak:
              keycloak:
@@ -878,7 +331,7 @@ apps:
                    limits:
                       cpu: 1000m
                       memory: 2000Mi
-                 password: "{{ rancher_password }}"
+                 password: "{{ cluster_password }}"
                  ingress:
                    enabled: true
                    path: /auth
@@ -888,267 +341,19 @@ apps:
                       nginx.ingress.kubernetes.io/secure-backends: "true"
                    hosts:
                       - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
+          {% if not (cluster_hostname | ipaddr) %}
+                      - "{{ cluster_hostname }}"
                    tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
+                      - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                         hosts:
-                          - "{{ rancher_server }}"
+                          - "{{ cluster_hostname }}"
           {% endif %}
           influxdb:
             setDefaultUser:
-              password: {{ random_client_secret }}
+              user:
+                password: {{ random_client_secret }}
           global:
-             domain: "{{ rancher_server }}"
-             deployment_name: "{{ cm_deployment_name }}"
-  - version: dev
-    frontend_component_path: |-
-      app/marketplace/plugins/plugins.module#PluginsModule
-    frontend_component_name: clui-cm2-config
-    backend_component_name: |-
-      cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
-    default_launch_config:
-      config_appliance:
-        inventoryTemplate: |-
-          ${host}
-
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
-        runner: ansible
-        sshUser: ubuntu
-      config_cloudlaunch:
-        firewall:
-        - rules:
-          - cidr: 0.0.0.0/0
-            from: '22'
-            protocol: tcp
-            to: '22'
-          - cidr: 0.0.0.0/0
-            from: '80'
-            protocol: tcp
-            to: '80'
-          - cidr: 0.0.0.0/0
-            from: '443'
-            protocol: tcp
-            to: '443'
-          - cidr: 0.0.0.0/0
-            from: '4430'
-            protocol: tcp
-            to: '4430'
-          - cidr: 0.0.0.0/0
-            from: '6443'
-            protocol: tcp
-            to: '6443'
-          - cidr: 0.0.0.0/0
-            from: '2379'
-            protocol: tcp
-            to: '2380'
-          - cidr: 0.0.0.0/0
-            from: '10250'
-            protocol: tcp
-            to: '10250'
-          - cidr: 0.0.0.0/0
-            from: '10251'
-            protocol: tcp
-            to: '10251'
-          - cidr: 0.0.0.0/0
-            from: '10252'
-            protocol: tcp
-            to: '10252'
-          - cidr: 0.0.0.0/0
-            from: '10256'
-            protocol: tcp
-            to: '10256'
-          - cidr: 0.0.0.0/0
-            from: '30000'
-            protocol: tcp
-            to: '32767'
-          - from: '1'
-            protocol: tcp
-            src_group: cloudlaunch-cm2
-            to: '65535'
-          - from: '1'
-            protocol: udp
-            src_group: cloudlaunch-cm2
-            to: '65535'
-          securityGroup: cloudlaunch-cm2
-        vmType: m1.medium
-      config_cloudman2:
-        cm_boot_image: galaxy/cloudman-boot:latest
-        cm_charts_repo: https://raw.githubusercontent.com/cloudve/helm-charts/master/
-        cm_helm_values: |-
-          cluster_type: KUBE_RANCHER
-          rancher_url: "https://{{ rancher_server }}:{{ rancher_port }}"
-          rancher_api_key: "{{ token }}"
-          rancher_cluster_id: "{{ cluster_id }}"
-          rancher_project_id: "{{ project_id }}"
-          cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
-
-          oidc_clients:
-            galaxy:
-              client_id: 'galaxy-auth'
-              # The client secret is required if the client is not public
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-            gatekeeper:
-              client_id: 'gatekeeper'
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-            jupyterhub:
-              client_id: 'jupyterhub'
-              public_client: false
-              client_secret: {{random_client_secret}}
-              redirect_uris:
-                - {{ '\'{{ include "cloudman.root_url" . }}/*\'' }}
-
-          projman_config:
-            projects:
-              initial:
-                charts:
-                  galaxy:
-                    install_template: galaxy
-                  terminalman:
-                    install_template: terminalman
-                  rstudio:
-                    install_template: rstudio
-                  jupyterhub:
-                    install_template: jupyter
-          helmsman_config:
-            repositories:
-               - name: cloudve
-                 url: https://raw.githubusercontent.com/cloudve/helm-charts/master/
-               - name: jupyterhub
-                 url: https://jupyterhub.github.io/helm-chart/
-
-          cloudlaunch:
-             rabbitmq:
-                rabbitmqErlangCookie: {{ random_client_secret }}
-             image:
-                repository: galaxy/cloudman-ui
-                tag: latest
-             resources:
-                requests:
-                  cpu: 100m
-                  memory: 500Mi
-                limits:
-                  cpu: 1000m
-                  memory: 3000Mi
-             cloudlaunchserver:
-                image:
-                  repository: galaxy/cloudman-server
-                  tag: latest
-                resources:
-                  requests:
-                    cpu: 500m
-                    memory: 1500Mi
-                  limits:
-                    cpu: 1000m
-                    memory: 5000Mi
-                admin_password: "{{ rancher_password }}"
-                postgresql:
-                   postgresqlPassword: {{ random_client_secret }}
-                   postgresqlPostgresPassword: {{ random_client_secret }}
-                   persistence:
-                      storageClass: "ebs"
-                ingress:
-                   annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                   hosts:
-                      - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
-                   tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ rancher_server }}"
-          {% endif %}
-             ingress:
-                annotations:
-                   kubernetes.io/tls-acme: "true"
-                   cert-manager.io/cluster-issuer: letsencrypt-prod
-                   nginx.ingress.kubernetes.io/secure-backends: "true"
-                hosts:
-                   - ~
-          {% if not (rancher_server | ipaddr) %}
-                   - "{{ rancher_server }}"
-                tls:
-                   - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                     hosts:
-                       - "{{ rancher_server }}"
-          {% endif %}
-          prometheus:
-             persistence:
-                storageClass: "nfs"
-             alertmanager:
-                config:
-                   global:
-                      http_config:
-                         basic_auth:
-                            password: {{ random_client_secret }}
-             grafana:
-                adminPassword: {{ random_client_secret }}
-                grafana.ini:
-                   server:
-                      root_url: "https://{{ rancher_server }}/grafana"
-                   auth.generic_oauth:
-                      auth_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/auth"
-                      token_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/token"
-                      api_url: "https://{{ rancher_server }}/auth/realms/master/protocol/openid-connect/userinfo"
-                ingress:
-                   annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                   hosts:
-                      - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
-                   tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ rancher_server }}"
-          {% endif %}
-          keycloak:
-             keycloak:
-                 resources:
-                   requests:
-                      cpu: 100m
-                      memory: 750Mi
-                   limits:
-                      cpu: 1000m
-                      memory: 2000Mi
-                 password: "{{ rancher_password }}"
-                 ingress:
-                   enabled: true
-                   path: /auth
-                   annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                   hosts:
-                      - ~
-          {% if not (rancher_server | ipaddr) %}
-                      - "{{ rancher_server }}"
-                   tls:
-                      - secretName: "{{ rancher_server | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ rancher_server }}"
-          {% endif %}
-          influxdb:
-            setDefaultUser:
-              password: {{ random_client_secret }}
-          global:
-             domain: "{{ rancher_server }}"
+             domain: "{{ cluster_hostname }}"
              deployment_name: "{{ cm_deployment_name }}"
 - slug: galaxy-stanalone-vm
   name: Galaxy Standalone VM
@@ -1317,15 +522,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -2021,15 +1227,16 @@ apps:
       cloudlaunch.backend_plugins.pulsar_app.PulsarAppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
       config_cloudlaunch:
         firewall:
@@ -2108,15 +1315,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -2385,15 +1593,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -2974,15 +2183,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -3203,15 +2413,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -3378,15 +2589,16 @@ apps:
   default_version: 0.3.0 (Galaxy 19.09 w/ UBOS)
   default_launch_config:
     config_appliance:
-      inventoryTemplate: |-
-        ${host}
+      playbooks:
+        - url: https://github.com/CloudVE/ansible-docker-boot
+          inventory_template: |-
+            ${host}
 
-        [all:vars]
-        ansible_ssh_port=22
-        ansible_user='${user}'
-        ansible_ssh_private_key_file=pk
-        ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-      repository: https://github.com/CloudVE/ansible-docker-boot
+            [all:vars]
+            ansible_ssh_port=22
+            ansible_user='${user}'
+            ansible_ssh_private_key_file=pk
+            ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
       runner: ansible
       sshUser: ubuntu
     config_cloudlaunch:
@@ -3457,15 +2669,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -3748,15 +2961,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -3826,15 +3040,16 @@ apps:
       cloudlaunch.backend_plugins.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
-        inventoryTemplate: |-
-          ${host}
+        playbooks:
+          - url: https://github.com/CloudVE/ansible-docker-boot
+            inventory_template: |-
+              ${host}
 
-          [all:vars]
-          ansible_ssh_port=22
-          ansible_user='${user}'
-          ansible_ssh_private_key_file=pk
-          ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
-        repository: https://github.com/CloudVE/ansible-docker-boot
+              [all:vars]
+              ansible_ssh_port=22
+              ansible_user='${user}'
+              ansible_ssh_private_key_file=pk
+              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:

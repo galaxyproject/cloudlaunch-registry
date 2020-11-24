@@ -7,9 +7,7 @@ install_templates:
     icon_url: "https://upload.wikimedia.org/wikipedia/commons/6/60/Nextcloud_Logo.svg"
     screenshot_url: assets/images/screenshot_nextcloud.png
     context:
-      domain: '{{ .Values.global.domain }}'
       starting_dir: '/gvl'
-      keycloak_password: 'changeme'
     template: |
       {% set oidc_client_secret = random_alphanumeric(8) + "-" + random_alphanumeric(4) + "-" + random_alphanumeric(4) + "-" + random_alphanumeric(4) + "-" + random_alphanumeric(12) %}
       postgresql:
@@ -32,8 +30,8 @@ install_templates:
         enabled: true
         access_path: "{{context.project.access_path}}/nextcloud/"
         hosts:
-          {%- if not (context.domain | ipaddr) %}
-          - host: '{{context.domain}}'
+          {%- if not (context.global.domain | ipaddr) %}
+          - host: '{{context.global.domain}}'
             paths:
               - {{context.project.access_path}}/nextcloud(/|$)(.*)
           {%- endif %}
@@ -55,8 +53,8 @@ install_templates:
               'overwriteprotocol' => 'https',
               'theme' => 'galaxy',
               'overwritewebroot' => '{{context.project.access_path}}/nextcloud',
-              'overwritehost'     => '{{context.domain}}',
-              'overwrite.cli.url' => 'https://{{context.domain}}/{{context.project.access_path}}/nextcloud',
+              'overwritehost'     => '{{context.global.domain}}',
+              'overwrite.cli.url' => 'https://{{context.global.domain}}/{{context.project.access_path}}/nextcloud',
               'filesystem_check_changes' => 1,
               'check_data_directory_permissions' => false,
               'skeletondirectory' => '',
@@ -65,8 +63,8 @@ install_templates:
               'oidc_login_default_quota' => 0,
               'oidc_login_client_id' => 'projman-{{context.project.namespace}}',
               'oidc_login_client_secret' => '{{oidc_client_secret}}',
-              'oidc_login_provider_url' => 'https://{{context.domain}}/auth/realms/master',
-              'oidc_login_logout_url' => 'https://{{context.domain}}/auth/realms/master/protocol/openid-connect/logout?redirect_uri=https%3A%2F%2F{{context.domain}}%2F{{context.project.access_path}}%2Fnextcloud%2F',
+              'oidc_login_provider_url' => 'https://{{context.global.domain}}/auth/realms/master',
+              'oidc_login_logout_url' => 'https://{{context.global.domain}}/auth/realms/master/protocol/openid-connect/logout?redirect_uri=https%3A%2F%2F{{context.global.domain}}%2F{{context.project.access_path}}%2Fnextcloud%2F',
               'oidc_login_scope' => 'openid profile',
               'oidc_login_auto_redirect' => true,
               'oidc_login_redir_fallback' => true,
@@ -78,7 +76,7 @@ install_templates:
               ),
             );
 
-        host: "{{context.domain}}"
+        host: "{{context.global.domain}}"
         extraVolumes:
           - name: public-data
             persistentVolumeClaim:
@@ -148,7 +146,7 @@ install_templates:
             done; occ app:update --all; occ upgrade; occ app:enable files_external; occ app:disable photos; occ app:disable theming; occ app:disable gallery; occ app:install oidc_login; occ app:install external; occ config:app:set --value yes files_external allow_user_mounting; occ config:app:set --value 'ftp,dav,owncloud,sftp,amazons3,swift,\OC\Files\Storage\SFTP_Key' files_external user_mounting_backends; occ files_external:create -c "datadir=/gvl" / local null::null; if [ -d "/var/www/html/themes/galaxy/gvl-extras" ]; then
                 occ maintenance:theme:update;
                 mkdir -p "/var/www/html/data/appdata_$(occ config:system:get instanceid)/external/icons" && cp /var/www/html/themes/galaxy/gvl-extras/*.svg "/var/www/html/data/appdata_$(occ config:system:get instanceid)/external/icons";
-            fi; occ config:app:set external sites --value='[["RStudio","https://{{context.domain}}/{{context.project.namespace}}/rstudio/","rstudio-icon.svg"],["Terminal","https://{{context.domain}}/{{context.project.namespace}}/terminalman/","terminal-icon.svg"],["JupyterHub","https://{{context.domain}}/{{context.project.namespace}}/jupyterhub/oauth_login","jupyter-icon.svg"],["Galaxy","https://{{context.domain}}/{{context.project.namespace}}/galaxy/","galaxy-icon.svg"],["Data Libraries","https://{{context.domain}}/{{context.project.namespace}}/galaxy/library/list","galaxy-icon.svg"],["Workflows","https://{{context.domain}}/{{context.project.namespace}}/galaxy/workflows/list","galaxy-icon.svg"],["Data Libraries","https://{{context.domain}}/{{context.project.namespace}}/galaxy/library/list","galaxy-icon.svg"],["Published Histories","https://{{context.domain}}/{{context.project.namespace}}/galaxy/histories/list_published","galaxy-icon.svg"],["Published Workflows","https://{{context.domain}}/{{context.project.namespace}}/galaxy/workflows/list_published","galaxy-icon.svg"]]';
+            fi; occ config:app:set external sites --value='[["RStudio","https://{{context.global.domain}}/{{context.project.namespace}}/rstudio/","rstudio-icon.svg"],["Terminal","https://{{context.global.domain}}/{{context.project.namespace}}/terminalman/","terminal-icon.svg"],["JupyterHub","https://{{context.global.domain}}/{{context.project.namespace}}/jupyterhub/oauth_login","jupyter-icon.svg"],["Galaxy","https://{{context.global.domain}}/{{context.project.namespace}}/galaxy/","galaxy-icon.svg"],["Data Libraries","https://{{context.global.domain}}/{{context.project.namespace}}/galaxy/library/list","galaxy-icon.svg"],["Workflows","https://{{context.global.domain}}/{{context.project.namespace}}/galaxy/workflows/list","galaxy-icon.svg"],["Data Libraries","https://{{context.global.domain}}/{{context.project.namespace}}/galaxy/library/list","galaxy-icon.svg"],["Published Histories","https://{{context.global.domain}}/{{context.project.namespace}}/galaxy/histories/list_published","galaxy-icon.svg"],["Published Workflows","https://{{context.global.domain}}/{{context.project.namespace}}/galaxy/workflows/list_published","galaxy-icon.svg"]]';
 
 
       projman:
@@ -205,16 +203,16 @@ install_templates:
                 - name: CLIENT_ID
                   value: "{{context.project.oidc_client_id}}"
                 - name: KEYCLOAK_HTTP_PASSWORD
-                  value: "{{context.keycloak_password}}"
+                  value: "{{context.global.keycloak_password}}"
                 - name: REDIRECT_URIS
-                  value: "https://{{context.domain}}/{{context.project.namespace}}/*"
+                  value: "https://{{context.global.domain}}/{{context.project.namespace}}/*"
                 - name: CLIENT_SECRET
                   valueFrom:
                     secretKeyRef:
                       name: "{{context.project.namespace}}-projman-secrets"
                       key: oidc-client-secret
                 - name: KC_URL
-                  value: "https://{{context.domain}}/auth"
+                  value: "https://{{context.global.domain}}/auth"
             volumes:
               - name: kc-init
                 configMap:
@@ -230,7 +228,7 @@ install_templates:
           rserver.conf: |
             rsession-which-r=/usr/local/bin/R
             auth-none=1
-            www-frame-origin={{context.domain}}
+            www-frame-origin={{context.global.domain}}
 
           update_keycloak.sh: |
             #!/bin/sh
@@ -900,13 +898,38 @@ install_templates:
     icon_url: https://galaxyproject.org/images/galaxy-logos/galaxy_project_logo_square.png
     screenshot_url: assets/images/screenshot_galaxy.png
     context:
-      domain: '{{ .Values.global.domain }}'
-      influxdb_url: '{{ include "cloudman.influxdb_url_cluster" . }}'
-      influxdb_database: '{{ include "cloudman.influxdb_database" . }}'
-      influxdb_username: '{{ .Values.influxdb.setDefaultUser.username }}'
-      influxdb_password: '{{ .Values.influxdb.setDefaultUser.password }}'
       admin_users: cloudman@someplace.org
     template: |
+      image:
+        repository: galaxy/galaxy-k8s
+      persistence:
+        storageClass: nfs
+      postgresql:
+        postgresqlPassword: "{{ random_alphanumeric(10) }}"
+        postgresqlPostgresPassword: "{{ random_alphanumeric(10) }}"
+        persistence:
+          storageClass: ebs
+      influxdb:
+        enabled: true
+        url: "{{context.global.influxdb_url}}"
+        username: "{{context.global.influxdb_username}}"
+        password: "{{context.global.influxdb_password}}"
+      ingress:
+        enabled: true
+        annotations:
+           kubernetes.io/tls-acme: "true"
+           cert-manager.io/cluster-issuer: letsencrypt-prod
+           nginx.ingress.kubernetes.io/secure-backends: "true"
+        hosts:
+          - ~
+          {%- if not (context.global.domain | ipaddr) %}
+          - "{{ context.global.domain }}"
+          {%- endif %}
+        tls:
+           - secretName: "{{context.global.domain | replace('.', '-') }}-key"
+             hosts:
+               - "{{context.global.domain}}"
+        path: {{context.project.access_path}}/galaxy
       configs:
         oidc_config.xml: |
           <?xml version="1.0"?>
@@ -919,10 +942,10 @@ install_templates:
           <?xml version="1.0"?>
           <OIDC>
               <provider name="keycloak">
-                  <url>https://{{context.domain}}/auth/realms/master</url>
+                  <url>https://{{context.global.domain}}/auth/realms/master</url>
                   <client_id>{{context.project.oidc_client_id}}</client_id>
                   <client_secret>{{context.project.oidc_client_secret}}</client_secret>
-                  <redirect_uri>https://{{context.domain}}{{context.project.access_path}}/galaxy/authnz/keycloak/callback</redirect_uri>
+                  <redirect_uri>https://{{context.global.domain}}{{context.project.access_path}}/galaxy/authnz/keycloak/callback</redirect_uri>
                   <enable_idp_logout>true</enable_idp_logout>
               </provider>
           </OIDC>
@@ -941,31 +964,6 @@ install_templates:
             auth_config_file: /galaxy/server/config/auth_conf.xml
             require_login: true
             session_duration: 30
-      image:
-        repository: galaxy/galaxy-k8s
-      persistence:
-        storageClass: nfs
-      postgresql:
-        postgresqlPassword: "{{ random_alphanumeric(10) }}"
-        postgresqlPostgresPassword: "{{ random_alphanumeric(10) }}"
-        persistence:
-          storageClass: ebs
-      ingress:
-        enabled: true
-        annotations:
-           kubernetes.io/tls-acme: "true"
-           cert-manager.io/cluster-issuer: letsencrypt-prod
-           nginx.ingress.kubernetes.io/secure-backends: "true"
-        hosts:
-          - ~
-          {%- if not (context.domain | ipaddr) %}
-          - "{{ context.domain }}"
-          {%- endif %}
-        tls:
-           - secretName: "{{context.domain | replace('.', '-') }}-key"
-             hosts:
-               - "{{context.domain}}"
-        path: {{context.project.access_path}}/galaxy
 
       extraVolumes:
         - name: project-data
@@ -981,12 +979,6 @@ install_templates:
         - name: public-data
           mountPath: /gvl/public
 
-      influxdb:
-        enabled: true
-        url: "{{context.influxdb_url}}"
-        username: "{{context.influxdb_username}}"
-        password: "{{context.influxdb_password}}"
-
   jupyter:
     repo: jupyterhub
     chart: jupyterhub
@@ -1001,8 +993,6 @@ install_templates:
     info_url: https://jupyter.org/
     icon_url: https://jupyter.org/assets/hublogo.svg
     screenshot_url: assets/images/screenshot_jupyter.png
-    context:
-      domain: '{{ .Values.global.domain }}'
     template: |
       ingress:
         access_path: "{{context.project.access_path}}/jupyterhub/oauth_login"
@@ -1010,8 +1000,8 @@ install_templates:
         path: "{{ context.project.access_path}}/jupyterhub"
         hosts:
           - ~
-          {%- if not (context.domain | ipaddr) %}
-          - "{{ context.domain }}"
+          {%- if not (context.global.domain | ipaddr) %}
+          - "{{ context.global.domain }}"
           {%- endif %}
 
       auth:
@@ -1022,8 +1012,8 @@ install_templates:
             login_service: "keycloak"
             client_id: "{{context.project.oidc_client_id}}"
             client_secret: "{{context.project.oidc_client_secret}}"
-            token_url: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/token"
-            userdata_url: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/userinfo"
+            token_url: "https://{{context.global.domain}}/auth/realms/master/protocol/openid-connect/token"
+            userdata_url: "https://{{context.global.domain}}/auth/realms/master/protocol/openid-connect/userinfo"
             userdata_method: GET
             username_key: preferred_username
 
@@ -1031,11 +1021,11 @@ install_templates:
         baseUrl: "{{context.project.access_path}}/jupyterhub"
         extraEnv:
           - name: OAUTH2_AUTHORIZE_URL
-            value: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/auth"
+            value: "https://{{context.global.domain}}/auth/realms/master/protocol/openid-connect/auth"
           - name: OAUTH2_TOKEN_URL
-            value: "https://{{context.domain}}/auth/realms/master/protocol/openid-connect/token"
+            value: "https://{{context.global.domain}}/auth/realms/master/protocol/openid-connect/token"
           - name: OAUTH_CALLBACK_URL
-            value: "https://{{context.domain}}{{context.project.access_path}}/jupyterhub/hub/oauth_callback"
+            value: "https://{{context.global.domain}}{{context.project.access_path}}/jupyterhub/hub/oauth_callback"
 
       proxy:
         secretToken: "{{random_alphanumeric(65)}}"
@@ -1085,20 +1075,19 @@ install_templates:
     screenshot_url: assets/images/screenshot_rstudio.png
     context:
       starting_dir: "/gvl"
-      domain: '{{ .Values.global.domain }}'
     template: |
       oidc:
         client_id: "{{context.project.oidc_client_id}}"
         client_secret: {{context.project.oidc_client_secret}}
-        discovery_url: https://{{context.domain}}/auth/realms/master
+        discovery_url: https://{{context.global.domain}}/auth/realms/master
       ingress:
         access_path: "{{context.project.access_path}}/rstudio/"
         hosts:
           - host: ~
             paths:
               - {{context.project.access_path}}/rstudio(/|$)(.*)
-          {%- if not (context.domain | ipaddr) %}
-          - host: {{context.domain}}
+          {%- if not (context.global.domain | ipaddr) %}
+          - host: {{context.global.domain}}
             paths:
               - {{context.project.access_path}}/rstudio(/|$)(.*)
           {%- endif %}
@@ -1146,21 +1135,20 @@ install_templates:
     icon_url: https://upload.wikimedia.org/wikipedia/commons/8/82/Gnu-bash-logo.svg
     screenshot_url: assets/images/screenshot_terminal.png
     context:
-      domain: '{{ .Values.global.domain }}'
       starting_dir: "/gvl"
     template: |
       oidc:
         client_id: "{{context.project.oidc_client_id}}"
         client_secret: {{context.project.oidc_client_secret}}
-        discovery_url: https://{{context.domain}}/auth/realms/master
+        discovery_url: https://{{context.global.domain}}/auth/realms/master
       ingress:
         access_path: {{context.project.access_path}}/terminalman/
         hosts:
           - host: ~
             paths:
               - {{context.project.access_path}}/terminalman
-          {%- if not (context.domain | ipaddr) %}
-          - host: {{context.domain}}
+          {%- if not (context.global.domain | ipaddr) %}
+          - host: {{context.global.domain}}
             paths:
               - {{context.project.access_path}}/terminalman
           {%- endif %}
