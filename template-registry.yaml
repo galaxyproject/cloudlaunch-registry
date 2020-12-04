@@ -902,6 +902,8 @@ install_templates:
     template: |
       image:
         repository: galaxy/galaxy-k8s
+      cvmfs:
+        enabled: true
       persistence:
         storageClass: nfs
       postgresql:
