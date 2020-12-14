@@ -932,6 +932,7 @@ install_templates:
              hosts:
                - "{{context.global.domain}}"
         path: {{context.project.access_path}}/galaxy
+        access_path: {{context.project.access_path}}/galaxy/
       configs:
         oidc_config.xml: |
           <?xml version="1.0"?>

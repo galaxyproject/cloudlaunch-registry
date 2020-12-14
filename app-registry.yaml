@@ -179,7 +179,8 @@ apps:
           cluster_type: KUBE_RKE
           rke_registration_server: {{ rke_registration_server }}
           rke_registration_token: {{ rke_registration_token }}
-          cm_initial_cluster_data: "{{ cm_initial_cluster_data|default('') }}"
+          cm_initial_cluster_data: |
+            {{ cm_initial_cluster_data | default('') | to_nice_yaml(indent=2) | indent(width=2) }}
 
           helmsman_config:
             repositories:
