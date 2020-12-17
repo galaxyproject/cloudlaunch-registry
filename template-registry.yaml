@@ -916,6 +916,7 @@ install_templates:
         url: "{{context.global.influxdb_url}}"
         username: "{{context.global.influxdb_username}}"
         password: "{{context.global.influxdb_password}}"
+        database: "{{context.global.influxdb_database}}"
       ingress:
         enabled: true
         annotations:
