@@ -607,7 +607,7 @@ apps:
   maintainer: bjoern.gruening@gmail.com
   description: |-
     The ChemicalToolBoX is a set of tools integrated into the Galaxy-workflow-management system to enable researchers easy-to-use, reproducible, and transparent access to cheminformatics libraries and drug discovery tools. It includes standard applications for similarity and substructure searches, clustering of compounds, prediction of properties and descriptors, filtering, and many other tools that range from drug-likeness classification to fragmentation and fragment-merging. By combinating the various tools many more powerful applications can be designed.
-  info_url: https://galaxyproject.org/chemical-tool-box/
+  info_url: https://galaxyproject.org/use/chemicaltoolbox/
   icon_url: https://i.imgur.com/NhIZvB1.png
   display_order: 10000
   default_version: Latest
