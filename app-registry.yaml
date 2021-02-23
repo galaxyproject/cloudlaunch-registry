@@ -229,8 +229,6 @@ apps:
                     install_template: terminalman
                   rstudio:
                     install_template: rstudio
-                  jupyterhub:
-                    install_template: jupyter
 
           cloudlaunch:
              image:
@@ -1409,8 +1407,6 @@ apps:
                     install_template: terminalman
                   rstudio:
                     install_template: rstudio
-                  jupyterhub:
-                    install_template: jupyter
           helmsman_config:
             repositories:
                - name: cloudve
