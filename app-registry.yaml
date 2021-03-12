@@ -290,7 +290,7 @@ apps:
                      hosts:
                        - "{{ cluster_hostname }}"
           {% endif %}
-          prometheus:
+          kube-prometheus-stack:
              persistence:
                 storageClass: "nfs"
              alertmanager:
