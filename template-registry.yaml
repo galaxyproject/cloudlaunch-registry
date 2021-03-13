@@ -925,14 +925,14 @@ install_templates:
            cert-manager.io/cluster-issuer: letsencrypt-prod
            nginx.ingress.kubernetes.io/secure-backends: "true"
         hosts:
-          - ~
+          - host: ~
           {%- if not (context.global.domain | ipaddr) %}
-          - "{{ context.global.domain }}"
+          - host: "{{ context.global.domain }}"
           {%- endif %}
         tls:
            - secretName: "{{context.global.domain | replace('.', '-') }}-key"
              hosts:
-               - "{{context.global.domain}}"
+               - host: "{{context.global.domain}}"
         path: {{context.project.access_path}}/galaxy
         access_path: {{context.project.access_path}}/galaxy/
       configs:
