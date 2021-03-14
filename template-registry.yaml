@@ -933,6 +933,8 @@ install_templates:
            - secretName: "{{context.global.domain | replace('.', '-') }}-key"
              hosts:
                - host: "{{context.global.domain}}"
+                 paths:
+                   - path: "{{context.project.access_path}}/galaxy"
         path: {{context.project.access_path}}/galaxy
         access_path: {{context.project.access_path}}/galaxy/
       configs:
