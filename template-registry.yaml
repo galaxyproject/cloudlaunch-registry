@@ -926,15 +926,17 @@ install_templates:
            nginx.ingress.kubernetes.io/secure-backends: "true"
         hosts:
           - host: ~
+            paths:
+              - path: "{{context.project.access_path}}/galaxy"
           {%- if not (context.global.domain | ipaddr) %}
           - host: "{{ context.global.domain }}"
+            paths:
+              - path: "{{context.project.access_path}}/galaxy"
           {%- endif %}
         tls:
            - secretName: "{{context.global.domain | replace('.', '-') }}-key"
              hosts:
-               - host: "{{context.global.domain}}"
-                 paths:
-                   - path: "{{context.project.access_path}}/galaxy"
+               - "{{context.global.domain}}"
         path: {{context.project.access_path}}/galaxy
         access_path: {{context.project.access_path}}/galaxy/
       configs:
