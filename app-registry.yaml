@@ -290,7 +290,7 @@ apps:
                      hosts:
                        - "{{ cluster_hostname }}"
           {% endif %}
-          kube-prometheus-stack:
+          kubePrometheusStack:
              persistence:
                 storageClass: "nfs"
              alertmanager:
@@ -314,7 +314,6 @@ apps:
                       cert-manager.io/cluster-issuer: letsencrypt-prod
                       nginx.ingress.kubernetes.io/secure-backends: "true"
                    hosts:
-                      - ~
           {% if not (cluster_hostname | ipaddr) %}
                       - "{{ cluster_hostname }}"
                    tls:
