@@ -1261,7 +1261,7 @@ apps:
   info_url: https://genome.edu.au/
   icon_url: https://i.imgur.com/PUZv6iY.png
   display_order: 1000
-  default_version: GVL 5.0 beta4 (Galaxy 20.05)
+  default_version: GVL 5.0 beta5 (Galaxy 20.09)
   default_launch_config:
     config_cloudlaunch:
       firewall:
@@ -1307,7 +1307,7 @@ apps:
         masterPostStartScript: |-
           file:///opt/gvl/scripts/triggers;file:///mnt/galaxy/gvl/poststart.d
   versions:
-  - version: GVL 5.0 beta4 (Galaxy 20.05)
+  - version: GVL 5.0 beta5 (Galaxy 20.09)
     frontend_component_path: |-
       app/marketplace/plugins/plugins.module#PluginsModule
     frontend_component_name: clui-cm2-config
@@ -1316,15 +1316,15 @@ apps:
     default_launch_config:
       config_appliance:
         playbooks:
-          - url: https://github.com/CloudVE/ansible-docker-boot
-            inventory_template: |-
-              ${host}
+        - inventory_template: |-
+            ${host}
 
-              [all:vars]
-              ansible_ssh_port=22
-              ansible_user='${user}'
-              ansible_ssh_private_key_file=pk
-              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
+            [all:vars]
+            ansible_ssh_port=22
+            ansible_user='${user}'
+            ansible_ssh_private_key_file=pk
+            ansible_ssh_extra_args='-o StrictHostKeyChecking=no  -o ControlMaster=no'
+          url: https://github.com/CloudVE/ansible-docker-boot
         runner: ansible
         sshUser: ubuntu
       config_cloudlaunch:
@@ -1386,7 +1386,6 @@ apps:
         vmType: m1.medium
       config_cloudman2:
         cm_boot_image: galaxy/cloudman-boot:gvl-5.0
-        cm_initial_storage_size: 100Gi
         cm_charts_repo: |-
           https://raw.githubusercontent.com/cloudve/helm-charts/gvl-5.0/
         cm_helm_values: |-
@@ -1405,8 +1404,6 @@ apps:
                     install_template: galaxy
                   terminalman:
                     install_template: terminalman
-                  rstudio:
-                    install_template: rstudio
           helmsman_config:
             repositories:
                - name: cloudve
@@ -1541,6 +1538,7 @@ apps:
           global:
              domain: "{{ rancher_server }}"
              deployment_name: "{{ cm_deployment_name }}"
+        cm_initial_storage_size: 100Gi
   - version: GVL 4.1.0 - Tutorial Indices
     frontend_component_path: |-
       app/marketplace/plugins/plugins.module#PluginsModule
