@@ -192,7 +192,7 @@ apps:
                  url: https://jupyterhub.github.io/helm-chart/
             template_registries:
               - name: cloudve
-                url: https://raw.githubusercontent.com/galaxyproject/cloudlaunch-registry/kc_op/template-registry.yaml
+                url: https://raw.githubusercontent.com/galaxyproject/cloudlaunch-registry/master/template-registry.yaml
             charts:
               proxyinjector:
                 name: cloudve/proxyinjector
