@@ -52,7 +52,7 @@ install_templates:
                 matchLabels:
                   app: "gvl-sso"
               client:
-                clientId: "projman-{{context.project.namespace}}"
+                clientId: "{{context.project.namespace}}"
                 protocol: openid-connect
                 enabled: true
                 name: Client for project {{context.project.namespace}}
