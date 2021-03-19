@@ -371,7 +371,7 @@ install_templates:
           <?xml version="1.0"?>
           <OIDC>
               <provider name="keycloak">
-                  <url>https://{{context.global.domain}}/auth/realms/master</url>
+                  <url>https://{{context.global.domain}}/auth/realms/gvl</url>
                   <client_id>{{context.project.oidc_client_id}}</client_id>
                   <client_secret>{{context.project.oidc_client_secret}}</client_secret>
                   <redirect_uri>https://{{context.global.domain}}{{context.project.access_path}}/galaxy/authnz/keycloak/callback</redirect_uri>
@@ -441,8 +441,8 @@ install_templates:
             login_service: "keycloak"
             client_id: "{{context.project.oidc_client_id}}"
             client_secret: "{{context.project.oidc_client_secret}}"
-            token_url: "https://{{context.global.domain}}/auth/realms/master/protocol/openid-connect/token"
-            userdata_url: "https://{{context.global.domain}}/auth/realms/master/protocol/openid-connect/userinfo"
+            token_url: "https://{{context.global.domain}}/auth/realms/gvl/protocol/openid-connect/token"
+            userdata_url: "https://{{context.global.domain}}/auth/realms/gvl/protocol/openid-connect/userinfo"
             userdata_method: GET
             username_key: preferred_username
 
@@ -450,9 +450,9 @@ install_templates:
         baseUrl: "{{context.project.access_path}}/jupyterhub"
         extraEnv:
           - name: OAUTH2_AUTHORIZE_URL
-            value: "https://{{context.global.domain}}/auth/realms/master/protocol/openid-connect/auth"
+            value: "https://{{context.global.domain}}/auth/realms/gvl/protocol/openid-connect/auth"
           - name: OAUTH2_TOKEN_URL
-            value: "https://{{context.global.domain}}/auth/realms/master/protocol/openid-connect/token"
+            value: "https://{{context.global.domain}}/auth/realms/gvl/protocol/openid-connect/token"
           - name: OAUTH_CALLBACK_URL
             value: "https://{{context.global.domain}}{{context.project.access_path}}/jupyterhub/hub/oauth_callback"
 
@@ -508,7 +508,7 @@ install_templates:
       oidc:
         client_id: "{{context.project.oidc_client_id}}"
         client_secret: {{context.project.oidc_client_secret}}
-        discovery_url: https://{{context.global.domain}}/auth/realms/master
+        discovery_url: https://{{context.global.domain}}/auth/realms/gvl
       ingress:
         access_path: "{{context.project.access_path}}/rstudio/"
         hosts:
@@ -569,7 +569,7 @@ install_templates:
       oidc:
         client_id: "{{context.project.oidc_client_id}}"
         client_secret: {{context.project.oidc_client_secret}}
-        discovery_url: https://{{context.global.domain}}/auth/realms/master
+        discovery_url: https://{{context.global.domain}}/auth/realms/gvl
       ingress:
         access_path: {{context.project.access_path}}/terminalman/
         hosts:
