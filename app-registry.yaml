@@ -285,9 +285,9 @@ apps:
                    server:
                       root_url: "https://{{ cluster_hostname }}/grafana"
                    auth.generic_oauth:
-                      auth_url: "https://{{ keycloak_hostname }}/auth/realms/master/protocol/openid-connect/auth"
-                      token_url: "https://{{ keycloak_hostname }}/auth/realms/master/protocol/openid-connect/token"
-                      api_url: "https://{{ keycloak_hostname }}/auth/realms/master/protocol/openid-connect/userinfo"
+                      auth_url: "https://{{ keycloak_hostname }}/auth/realms/{{ cm_keycloak_realm_name }}/protocol/openid-connect/auth"
+                      token_url: "https://{{ keycloak_hostname }}/auth/realms/{{ cm_keycloak_realm_name }}/protocol/openid-connect/token"
+                      api_url: "https://{{ keycloak_hostname }}/auth/realms/{{ cm_keycloak_realm_name }}/protocol/openid-connect/userinfo"
                 ingress:
                    annotations:
                       kubernetes.io/tls-acme: "true"
