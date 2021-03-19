@@ -128,26 +128,26 @@ apps:
       cloudlaunch.backend_plugins.cloudman2.cloudman2_app.CloudMan2AppPlugin
     default_launch_config:
       config_appliance:
+        playbooks:
+        - inventory_template: |-
+            [controllers]
+            ${host}
+
+            [agents]
+
+            [rke_cluster:children]
+            controllers
+            agents
+
+            [all:vars]
+            ansible_ssh_port=22
+            ansible_user='${user}'
+            ansible_ssh_private_key_file=pk
+            ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
+          ordinal: 0
+          url: https://github.com/CloudVE/cloudman-boot
         runner: ansible
         sshUser: ubuntu
-        playbooks:
-          - url: https://github.com/CloudVE/cloudman-boot
-            ordinal: 0
-            inventory_template: |-
-              [controllers]
-              ${host}
-
-              [agents]
-
-              [rke_cluster:children]
-              controllers
-              agents
-
-              [all:vars]
-              ansible_ssh_port=22
-              ansible_user='${user}'
-              ansible_ssh_private_key_file=pk
-              ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
       config_cloudlaunch:
         firewall:
         - rules:
@@ -174,7 +174,9 @@ apps:
           securityGroup: cloudlaunch-cm2
         vmType: m1.medium
       config_cloudman2:
-        cm_charts_repo: https://raw.githubusercontent.com/cloudve/helm-charts/master/
+        cm_keycloak_operator_fork: "cloudve/keycloak-operator"
+        cm_charts_repo: |-
+          https://raw.githubusercontent.com/cloudve/helm-charts/master/
         cm_helm_values: |-
           cluster_type: KUBE_RKE
           rke_registration_server: {{ rke_registration_server }}
@@ -188,36 +190,14 @@ apps:
                  url: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
                - name: jupyterhub
                  url: https://jupyterhub.github.io/helm-chart/
-               - name: rancher
-                 url: https://releases.rancher.com/server-charts/stable
-               - name: alex
-                 url: https://raw.githubusercontent.com/almahmoud/helm-charts/nextclouddev/
             template_registries:
               - name: cloudve
-                url: https://raw.githubusercontent.com/galaxyproject/cloudlaunch-registry/master/template-registry.yaml
+                url: https://raw.githubusercontent.com/galaxyproject/cloudlaunch-registry/kc_op/template-registry.yaml
             charts:
               proxyinjector:
                 name: cloudve/proxyinjector
                 namespace: cloudman
                 create_namespace: false
-              rancher:
-                name: rancher/rancher
-                namespace: cattle-system
-                create_namespace: true
-                values:
-          {% if (cluster_hostname | ipaddr) %}
-                  hostname: rancher.{{ ansible_default_ipv4.address }}.xip.io
-          {% else %}
-                  hostname: rancher.{{ cluster_hostname }}
-          {% endif %}
-                  ingress:
-                    tls:
-                      source: letsEncrypt
-                  letsEncrypt:
-                    email: "admin@{{ cluster_hostname }}"
-                    environment: "production"
-                    ingress:
-                      class: nginx
 
           projman_config:
             projects:
@@ -290,7 +270,7 @@ apps:
                      hosts:
                        - "{{ cluster_hostname }}"
           {% endif %}
-          kube-prometheus-stack:
+          kubeprometheus:
              persistence:
                 storageClass: "nfs"
              alertmanager:
@@ -305,42 +285,15 @@ apps:
                    server:
                       root_url: "https://{{ cluster_hostname }}/grafana"
                    auth.generic_oauth:
-                      auth_url: "https://{{ cluster_hostname }}/auth/realms/master/protocol/openid-connect/auth"
-                      token_url: "https://{{ cluster_hostname }}/auth/realms/master/protocol/openid-connect/token"
-                      api_url: "https://{{ cluster_hostname }}/auth/realms/master/protocol/openid-connect/userinfo"
+                      auth_url: "https://{{ keycloak_hostname }}/auth/realms/master/protocol/openid-connect/auth"
+                      token_url: "https://{{ keycloak_hostname }}/auth/realms/master/protocol/openid-connect/token"
+                      api_url: "https://{{ keycloak_hostname }}/auth/realms/master/protocol/openid-connect/userinfo"
                 ingress:
                    annotations:
                       kubernetes.io/tls-acme: "true"
                       cert-manager.io/cluster-issuer: letsencrypt-prod
                       nginx.ingress.kubernetes.io/secure-backends: "true"
                    hosts:
-                      - ~
-          {% if not (cluster_hostname | ipaddr) %}
-                      - "{{ cluster_hostname }}"
-                   tls:
-                      - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
-                        hosts:
-                          - "{{ cluster_hostname }}"
-          {% endif %}
-          keycloak:
-             keycloak:
-                 resources:
-                   requests:
-                      cpu: 100m
-                      memory: 750Mi
-                   limits:
-                      cpu: 1000m
-                      memory: 2000Mi
-                 password: "{{ cluster_password }}"
-                 ingress:
-                   enabled: true
-                   path: /auth
-                   annotations:
-                      kubernetes.io/tls-acme: "true"
-                      cert-manager.io/cluster-issuer: letsencrypt-prod
-                      nginx.ingress.kubernetes.io/secure-backends: "true"
-                   hosts:
-                      - ~
           {% if not (cluster_hostname | ipaddr) %}
                       - "{{ cluster_hostname }}"
                    tls:
