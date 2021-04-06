@@ -328,6 +328,7 @@ install_templates:
       persistence:
         storageClass: nfs
       postgresql:
+        deploy: false
         postgresqlPassword: "{{ random_alphanumeric(10) }}"
         postgresqlPostgresPassword: "{{ random_alphanumeric(10) }}"
         persistence:
