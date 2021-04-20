@@ -344,6 +344,7 @@ install_templates:
            kubernetes.io/tls-acme: "true"
            cert-manager.io/cluster-issuer: letsencrypt-prod
            nginx.ingress.kubernetes.io/secure-backends: "true"
+           nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
         hosts:
           - host: ~
             paths:
