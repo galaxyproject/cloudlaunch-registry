@@ -56,6 +56,9 @@ install_templates:
                 protocol: openid-connect
                 enabled: true
                 fullScopeAllowed: true
+                defaultClientScopes:
+                 - "profile"
+                 - "email"
                 name: Client for project {{context.project.namespace}}
                 publicClient: false
                 standardFlowEnabled: true
