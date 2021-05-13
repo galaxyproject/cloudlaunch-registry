@@ -59,6 +59,7 @@ install_templates:
                 defaultClientScopes:
                  - "profile"
                  - "email"
+                 - "roles"
                 name: Client for project {{context.project.namespace}}
                 publicClient: false
                 standardFlowEnabled: true
