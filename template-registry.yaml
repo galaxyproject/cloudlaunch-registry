@@ -55,6 +55,10 @@ install_templates:
                 clientId: "projman-{{context.project.namespace}}"
                 protocol: openid-connect
                 enabled: true
+                fullScopeAllowed: true
+                defaultClientScopes:
+                 - "profile"
+                 - "email"
                 name: Client for project {{context.project.namespace}}
                 publicClient: false
                 standardFlowEnabled: true
