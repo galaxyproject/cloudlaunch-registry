@@ -174,7 +174,7 @@ apps:
           securityGroup: cloudlaunch-cm2
         vmType: m1.medium
       config_cloudman2:
-        cm_keycloak_operator_fork: "cloudve/keycloak-operator"
+        cm_initial_storage_size: 500Gi
         cm_charts_repo: |-
           https://raw.githubusercontent.com/cloudve/helm-charts/master/
         cm_helm_values: |-
@@ -205,10 +205,6 @@ apps:
                 charts:
                   galaxy:
                     install_template: galaxy
-                  terminalman:
-                    install_template: terminalman
-                  rstudio:
-                    install_template: rstudio
 
           cloudlaunch:
              image:
@@ -307,7 +303,8 @@ apps:
                 password: {{ random_client_secret }}
           global:
              domain: "{{ cluster_hostname }}"
-             deployment_name: "{{ cm_deployment_name }}"
+             deployment_name: "{{ cm_deployment_name }}"    
+    
 - slug: galaxy-stanalone-vm
   name: Galaxy Standalone VM
   status: DEV
