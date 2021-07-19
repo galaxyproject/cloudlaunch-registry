@@ -400,6 +400,12 @@ install_templates:
             auth_config_file: /galaxy/server/config/auth_conf.xml
             require_login: true
             session_duration: 30
+        job_conf.yml:
+          runners:
+            k8s:
+              k8s_job_metadata: |
+                labels:
+                  usegalaxy.org/cm_autoscaling_group: "default"
 
       extraVolumes:
         - name: project-data
