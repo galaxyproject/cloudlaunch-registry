@@ -326,7 +326,7 @@ install_templates:
       admin_users: cloudman@someplace.org
     template: |
       image:
-        repository: galaxy/galaxy-k8s
+        repository: galaxy/galaxy-min
       cvmfs:
         enabled: true
         deploy: false

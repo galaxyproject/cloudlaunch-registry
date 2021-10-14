@@ -303,7 +303,8 @@ apps:
                 password: {{ random_client_secret }}
           global:
              domain: "{{ cluster_hostname }}"
-             deployment_name: "{{ cm_deployment_name }}"    
+             deployment_name: "{{ cm_deployment_name }}"
+             keycloak_hostname: "{{ keycloak_hostname }}"
     
 - slug: galaxy-stanalone-vm
   name: Galaxy Standalone VM
