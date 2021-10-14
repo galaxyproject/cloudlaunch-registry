@@ -378,7 +378,7 @@ install_templates:
           <?xml version="1.0"?>
           <OIDC>
               <provider name="keycloak">
-                  <url>https://{{context.global.domain}}/auth/realms/gvl</url>
+                  <url>https://auth.{{context.global.domain}}/auth/realms/gvl</url>
                   <client_id>{{context.project.oidc_client_id}}</client_id>
                   <client_secret>{{context.project.oidc_client_secret}}</client_secret>
                   <redirect_uri>https://{{context.global.domain}}{{context.project.access_path}}/galaxy/authnz/keycloak/callback</redirect_uri>
