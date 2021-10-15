@@ -327,6 +327,7 @@ install_templates:
     template: |
       image:
         repository: galaxy/galaxy-min
+        tag: latest
       cvmfs:
         enabled: true
         deploy: false
