@@ -302,7 +302,7 @@ apps:
               user:
                 password: {{ random_client_secret }}
           global:
-             domain: "{{ cluster_hostname }}{% if cluster_hostname | ipaddr %}.nip.io{% endif %}"
+             domain: "{{ cluster_hostname }}"
              deployment_name: "{{ cm_deployment_name }}"
              keycloak_hostname: "{{ keycloak_hostname }}"
     
