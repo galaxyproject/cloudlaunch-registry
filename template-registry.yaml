@@ -327,9 +327,14 @@ install_templates:
     template: |
       image:
         repository: galaxyproject/galaxy-min
-        tag: latest
+        tag: 21.05
+      refdata:
+        enabled: true
+        type: cvmfs
       cvmfs:
         enabled: true
+        deploy: false
+      s3csi:
         deploy: false
       persistence:
         storageClass: nfs
@@ -391,8 +396,6 @@ install_templates:
             </auth>
         galaxy.yml:
           galaxy:
-            library_import_dir: /gvl
-            user_library_import_dir: /gvl
             admin_users: {{context.admin_users}}
             allow_path_paste: true
             enable_oidc: true
@@ -408,19 +411,106 @@ install_templates:
                 labels:
                   usegalaxy.org/cm_autoscaling_group: "default"
 
-      extraVolumes:
-        - name: project-data
-          persistentVolumeClaim:
-            claimName: "{{context.project.namespace}}-project-data-pvc"
-        - name: public-data
-          persistentVolumeClaim:
-            claimName: "{{context.project.namespace}}-public-data-pvc"
-
-      extraVolumeMounts:
-        - name: project-data
-          mountPath: /gvl/projects/current
-        - name: public-data
-          mountPath: /gvl/public
+  s3fs:
+    repo: s3fs
+    chart: s3fsgalaxy
+    display_name: Galaxy with s3fs
+    summary: |
+      Perform repeatable, interactive analysis using a graphical tool interface, choosing from popular
+      tools and workflows, aided by online training material and collaboration.
+    description: |
+      <a href="https://galaxyproject.org/">Galaxy</a> is an open, web-based platform for
+      accessible, reproducible, and transparent computational biomedical research. Perform repeatable, interactive
+      analysis using a graphical tool interface, choosing from popular tools and workflows, aided by online training
+      material and collaboration.
+    maintainers: Galaxy Team
+    info_url: https://galaxyproject.org/
+    icon_url: https://galaxyproject.org/images/galaxy-logos/galaxy_project_logo_square.png
+    screenshot_url: assets/images/screenshot_galaxy.png
+    context:
+      admin_users: cloudman@someplace.org
+    template: |
+      image:
+        repository: galaxyproject/galaxy-min
+        tag: 21.05
+      refdata:
+        enabled: true
+      s3csi:
+        deploy: true
+      persistence:
+        storageClass: nfs
+      postgresql:
+        deploy: false
+        postgresqlPassword: "{{ random_alphanumeric(10) }}"
+        postgresqlPostgresPassword: "{{ random_alphanumeric(10) }}"
+        persistence:
+          storageClass: ebs
+      influxdb:
+        enabled: true
+        url: "{{context.global.influxdb_url}}"
+        username: "{{context.global.influxdb_username}}"
+        password: "{{context.global.influxdb_password}}"
+        database: "{{context.global.influxdb_database}}"
+      ingress:
+        enabled: true
+        annotations:
+           kubernetes.io/tls-acme: "true"
+           cert-manager.io/cluster-issuer: letsencrypt-prod
+           nginx.ingress.kubernetes.io/secure-backends: "true"
+           nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
+        hosts:
+          - host: ~
+            paths:
+              - path: "{{context.project.access_path}}/s3fsgalaxy"
+          {%- if not (context.global.domain | ipaddr) %}
+          - host: "{{ context.global.domain }}"
+            paths:
+              - path: "{{context.project.access_path}}/s3fsgalaxy"
+          {%- endif %}
+        tls:
+           - secretName: "{{context.global.domain | replace('.', '-') }}-key"
+             hosts:
+               - "{{context.global.domain}}"
+        path: {{context.project.access_path}}/s3fsgalaxy
+        access_path: {{context.project.access_path}}/s3fsgalaxy/
+      configs:
+        oidc_config.xml: |
+          <?xml version="1.0"?>
+          <OIDC>
+              <Setter Property="VERIFY_SSL" Value="False" Type="bool"/>
+              <Setter Property="REQUESTS_TIMEOUT" Value="3600" Type="float"/>
+              <Setter Property="ID_TOKEN_MAX_AGE" Value="3600" Type="float"/>
+          </OIDC>
+        oidc_backends_config.xml: |
+          <?xml version="1.0"?>
+          <OIDC>
+              <provider name="keycloak">
+                  <url>https://auth.{{context.global.domain}}/auth/realms/gvl</url>
+                  <client_id>{{context.project.oidc_client_id}}</client_id>
+                  <client_secret>{{context.project.oidc_client_secret}}</client_secret>
+                  <redirect_uri>https://{{context.global.domain}}{{context.project.access_path}}/s3fsgalaxy/authnz/keycloak/callback</redirect_uri>
+                  <enable_idp_logout>true</enable_idp_logout>
+              </provider>
+          </OIDC>
+        auth_conf.xml: |
+            <auth>
+            </auth>
+        galaxy.yml:
+          galaxy:
+            admin_users: admin@usegvl.org
+            allow_path_paste: true
+            enable_oidc: true
+            oidc_config_file: /galaxy/server/config/oidc_config.xml
+            oidc_backends_config_file: /galaxy/server/config/oidc_backends_config.xml
+            auth_config_file: /galaxy/server/config/auth_conf.xml
+            require_login: true
+            session_duration: 30
+        job_conf.yml:
+          runners:
+            k8s:
+              k8s_job_metadata: |
+                labels:
+                  usegalaxy.org/cm_autoscaling_group: "default"
 
   jupyter:
     repo: jupyterhub
