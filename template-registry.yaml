@@ -326,7 +326,7 @@ install_templates:
       admin_users: cloudman@someplace.org
     template: |
       image:
-        repository: galaxy/galaxy-min
+        repository: galaxyproject/galaxy-min
         tag: latest
       cvmfs:
         enabled: true
