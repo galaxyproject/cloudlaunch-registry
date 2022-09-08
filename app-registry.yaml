@@ -228,6 +228,15 @@ apps:
                   limits:
                     cpu: 1000m
                     memory: 5000Mi
+                affinity:
+                  nodeAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                      nodeSelectorTerms:
+                      - matchExpressions:
+                        - key: node-role.kubernetes.io/controlplane
+                          operator: In
+                          values:
+                          - "true"
                 admin_password: "{{ cluster_password }}"
                 rabbitmq:
                   rabbitmqPassword: "{{ random_client_secret }}"
@@ -236,6 +245,15 @@ apps:
                 postgresql:
                    postgresqlPassword: {{ random_client_secret }}
                    postgresqlPostgresPassword: {{ random_client_secret }}
+                   affinity:
+                     nodeAffinity:
+                       requiredDuringSchedulingIgnoredDuringExecution:
+                         nodeSelectorTerms:
+                         - matchExpressions:
+                           - key: node-role.kubernetes.io/controlplane
+                             operator: In
+                             values:
+                             - "true"
                    persistence:
                       storageClass: "ebs"
                 ingress:
@@ -267,9 +285,39 @@ apps:
                        - "{{ cluster_hostname }}"
           {% endif %}
           kubeprometheus:
+             prometheusSpec:
+                affinity:
+                  nodeAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                      nodeSelectorTerms:
+                      - matchExpressions:
+                        - key: node-role.kubernetes.io/controlplane
+                          operator: In
+                          values:
+                          - "true"
+             prometheusOperator:
+                affinity:
+                  nodeAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                      nodeSelectorTerms:
+                      - matchExpressions:
+                        - key: node-role.kubernetes.io/controlplane
+                          operator: In
+                          values:
+                          - "true"
              persistence:
                 storageClass: "nfs"
              alertmanager:
+                alertmanagerSpec:
+                   affinity:
+                     nodeAffinity:
+                       requiredDuringSchedulingIgnoredDuringExecution:
+                         nodeSelectorTerms:
+                         - matchExpressions:
+                           - key: node-role.kubernetes.io/controlplane
+                             operator: In
+                             values:
+                             - "true"
                 config:
                    global:
                       http_config:
@@ -277,6 +325,15 @@ apps:
                             password: {{ random_client_secret }}
              grafana:
                 adminPassword: {{ random_client_secret }}
+                affinity:
+                   nodeAffinity:
+                     requiredDuringSchedulingIgnoredDuringExecution:
+                       nodeSelectorTerms:
+                       - matchExpressions:
+                         - key: node-role.kubernetes.io/controlplane
+                           operator: In
+                           values:
+                           - "true"
                 grafana.ini:
                    server:
                       root_url: "https://{{ cluster_hostname }}/grafana"
