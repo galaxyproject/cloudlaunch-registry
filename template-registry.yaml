@@ -328,17 +328,35 @@ install_templates:
       image:
         repository: galaxyproject/galaxy-min
         tag: latest
-      cvmfs:
-        enabled: true
-        deploy: false
       persistence:
         storageClass: nfs
       postgresql:
         deploy: false
         postgresqlPassword: "{{ random_alphanumeric(10) }}"
         postgresqlPostgresPassword: "{{ random_alphanumeric(10) }}"
+        operator:
+          primaryUserPassword: "{{ random_alphanumeric(10) }}"
+          operatorSpecExtra:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: node-role.kubernetes.io/controlplane
+                    operator: In
+                    values:
+                    - "true"
         persistence:
           storageClass: ebs
+        master:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: node-role.kubernetes.io/controlplane
+                    operator: In
+                    values:
+                    - "true"
       influxdb:
         enabled: true
         url: "{{context.global.influxdb_url}}"
@@ -407,6 +425,19 @@ install_templates:
               k8s_job_metadata: |
                 labels:
                   usegalaxy.org/cm_autoscaling_group: "default"
+              k8s_affinity: |
+                nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    nodeSelectorTerms:
+                    - matchExpressions:
+                      - key: node-role.kubernetes.io/controlplane
+                        operator: NotIn
+                        values:
+                        - "true"
+                      - key: node-role.kubernetes.io/etcd
+                        operator: NotIn
+                        values:
+                        - "true"
 
       extraVolumes:
         - name: project-data
