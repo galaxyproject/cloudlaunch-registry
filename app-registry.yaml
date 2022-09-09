@@ -262,9 +262,13 @@ apps:
                       cert-manager.io/cluster-issuer: letsencrypt-prod
                       nginx.ingress.kubernetes.io/secure-backends: "true"
                    hosts:
-                      - ~
+                      - host: ~
+                        paths:
+                          - path: "/cloudlaunch"
           {% if not (cluster_hostname | ipaddr) %}
-                      - "{{ cluster_hostname }}"
+                      - host: "{{ cluster_hostname }}"
+                        paths:
+                          - path: "/cloudlaunch"
                    tls:
                       - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                         hosts:
@@ -276,9 +280,13 @@ apps:
                    cert-manager.io/cluster-issuer: letsencrypt-prod
                    nginx.ingress.kubernetes.io/secure-backends: "true"
                 hosts:
-                   - ~
+                   - host: ~
+                     paths:
+                       - path: "/"
           {% if not (cluster_hostname | ipaddr) %}
-                   - "{{ cluster_hostname }}"
+                   - host: "{{ cluster_hostname }}"
+                     paths:
+                       - path: "/"
                 tls:
                    - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                      hosts:
