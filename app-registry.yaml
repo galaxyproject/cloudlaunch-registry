@@ -264,11 +264,11 @@ apps:
                    hosts:
                       - host: ~
                         paths:
-                          - path: "/cloudlaunch"
+                          - path: "/cloudman"
           {% if not (cluster_hostname | ipaddr) %}
                       - host: "{{ cluster_hostname }}"
                         paths:
-                          - path: "/cloudlaunch"
+                          - path: "/cloudman"
                    tls:
                       - secretName: "{{ cluster_hostname | replace('.', '-') }}-key"
                         hosts:
