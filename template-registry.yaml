@@ -325,9 +325,6 @@ install_templates:
     context:
       admin_users: cloudman@someplace.org
     template: |
-      image:
-        repository: galaxyproject/galaxy-min
-        tag: latest
       persistence:
         storageClass: nfs
       postgresql:
