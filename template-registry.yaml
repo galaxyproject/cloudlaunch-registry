@@ -360,6 +360,9 @@ install_templates:
         username: "{{context.global.influxdb_username}}"
         password: "{{context.global.influxdb_password}}"
         database: "{{context.global.influxdb_database}}"
+      cvmfs:
+        deploy: false
+        storageClassName: gxy-cvmfs-cvmfs
       ingress:
         enabled: true
         annotations:
